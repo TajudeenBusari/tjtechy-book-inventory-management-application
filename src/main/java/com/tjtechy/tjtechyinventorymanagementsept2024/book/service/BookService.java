@@ -1,13 +1,12 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.service;
 
-import com.tjtechy.tjtechyinventorymanagementsept2024.book.exceptions.modelNotFound.BookNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -17,6 +16,7 @@ public class BookService {
     private final BookRepository bookRepository;
 
     public BookService(BookRepository bookRepository) {
+
         this.bookRepository = bookRepository;
     }
 

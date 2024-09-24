@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/books")
+@RequestMapping("${api.endpoint.base-url}/books")
 public class BookController {
 
     private final BookService bookService;

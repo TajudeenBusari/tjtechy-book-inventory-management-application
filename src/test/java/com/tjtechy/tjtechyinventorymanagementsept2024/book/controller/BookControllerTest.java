@@ -1,7 +1,7 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tjtechy.tjtechyinventorymanagementsept2024.book.exceptions.modelNotFound.BookNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.service.BookService;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,6 +47,9 @@ class BookControllerTest {
 
     //let's create a list of Books
     List<Book> books;
+
+    @Value("${api.endpoint.base-url}")
+    String baseUrl;
 
     @BeforeEach //GETS CALL BEFORE ANY METHOD TEST IS CALLED
     void setUp() {
@@ -133,7 +137,7 @@ class BookControllerTest {
                 .willReturn(this.books.get(3));
 
         //When and Then
-        this.mockMvc.perform(get("/api/v1/books/{bookIsbn}", bookIsbn).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(get(this.baseUrl+ "/books/{bookIsbn}", bookIsbn).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
@@ -153,7 +157,7 @@ class BookControllerTest {
                 .willThrow(new BookNotFoundException(bookIsbn));
 
         //When and Then
-        this.mockMvc.perform(get("/api/v1/books/{bookIsbn}", bookIsbn).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(get(this.baseUrl + "/books/{bookIsbn}", bookIsbn).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
                 .andExpect(jsonPath("$.message").value("Could not find book with isbn " + bookIsbn))
@@ -166,7 +170,7 @@ class BookControllerTest {
         given(this.bookService.findAll()).willReturn(this.books);
 
         //When and Then
-        this.mockMvc.perform(get("/api/v1/books").accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(get(this.baseUrl + "/books").accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find All Success"))
@@ -204,9 +208,7 @@ class BookControllerTest {
 
         //data the service layer will return
         var savedBook = new Book();
-
         savedBook.setISBN(UUID.fromString("058949bf-949f-4406-8f3f-76265cff8006"));
-
         savedBook.setTitle("new title1");
         savedBook.setPublisher("new publisher1");
         savedBook.setGenre("new genre1");
@@ -221,7 +223,7 @@ class BookControllerTest {
         given(this.bookService.save(Mockito.any(Book.class))).willReturn(savedBook);
 
         //When and //Then
-        this.mockMvc.perform(post("/api/v1/books").contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(post(this.baseUrl + "/books").contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Add Success"))
@@ -279,7 +281,7 @@ class BookControllerTest {
 
 
         //When and Then
-        this.mockMvc.perform(put("/api/v1/books/{bookId}", bookId).contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(put(this.baseUrl + "/books/{bookId}", bookId).contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Update Success"))
@@ -300,6 +302,8 @@ class BookControllerTest {
     void testUpdateBookIsbnNotFound() throws Exception {
         UUID bookId = UUID.randomUUID();
         Date date = new Date(1726680002000L);
+
+
         var bookDto = new BookDto(
                 bookId,
                 "new title1",
@@ -318,8 +322,9 @@ class BookControllerTest {
         String json = this.objectMapper.writeValueAsString(bookDto);
         given(this.bookService.update(Mockito.any(Book.class), eq(bookId))).willThrow(new BookNotFoundException(bookId));
 
+
         //When and Then
-        this.mockMvc.perform(put("/api/v1/books/{bookId}", bookId).contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(put(this.baseUrl + "/books/{bookId}", bookId).contentType(MediaType.APPLICATION_JSON).content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
                 .andExpect(jsonPath("$.message").value("Could not find book with isbn " + bookId))
@@ -333,7 +338,7 @@ class BookControllerTest {
         doNothing().when(this.bookService).delete(bookId);
 
         //When and Then
-        this.mockMvc.perform(delete("/api/v1/books/{bookId}", bookId).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(delete(this.baseUrl + "/books/{bookId}", bookId).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Delete Success"))
@@ -347,7 +352,7 @@ class BookControllerTest {
         doThrow(new BookNotFoundException(bookId)).when(this.bookService).delete(bookId);
 
         //When and Then
-        this.mockMvc.perform(delete("/api/v1/books/{bookId}", bookId).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(delete(this.baseUrl + "/books/{bookId}", bookId).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
                 .andExpect(jsonPath("$.message").value("Could not find book with isbn " + bookId))

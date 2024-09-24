@@ -1,15 +1,14 @@
-package com.tjtechy.tjtechyinventorymanagementsept2024.book.exceptions;
+package com.tjtechy.tjtechyinventorymanagementsept2024.exceptions;
 
-import com.tjtechy.tjtechyinventorymanagementsept2024.book.exceptions.modelNotFound.BookNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.AuthorNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.Result;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
-import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,6 +24,12 @@ public class ExceptionHandlerAdvice {
     Result handleBookNotFoundException(BookNotFoundException bookNotFoundException) {
         return new Result(false, StatusCode.NOT_FOUND, bookNotFoundException.getMessage());
 
+    }
+
+    @ExceptionHandler(AuthorNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    Result handleAuthorNotFoundException(AuthorNotFoundException authorNotFoundException) {
+        return new Result(false, StatusCode.NOT_FOUND, authorNotFoundException.getMessage());
     }
 
     //in case of any invalid data passed in the request body
