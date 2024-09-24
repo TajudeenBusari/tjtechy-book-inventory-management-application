@@ -24,7 +24,6 @@ public class BookToBookDtoConverter implements Converter<Book, BookDto> {
                 source.getEdition(),
                 source.getLanguage(),
                 source.getPages(),
-               // source.getCoverImageUrl(),
                 source.getDescription(),
                 source.getPrice(),
                 source.getQuantity(),

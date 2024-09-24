@@ -1,14 +1,13 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.service;
 
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.Author;
-import com.tjtechy.tjtechyinventorymanagementsept2024.book.exceptions.modelNotFound.BookNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -52,7 +51,6 @@ class BookServiceTest {
         book1.setLanguage("some book1 language");
         book1.setPages(100);
         book1.setDescription("some book1 description");
-       // book1.setCoverImageUrl("www.imagebook1.png");
         book1.setPrice(1000.00);
         book1.setQuantity("3");
         this.books.add(book1); //add book1 to list books
@@ -67,7 +65,6 @@ class BookServiceTest {
         book2.setLanguage("some book2 language");
         book2.setPages(100);
         book2.setDescription("some book2 description");
-        //book2.setCoverImageUrl("www.imagebook2.png");
         book2.setPrice(1000.00);
         book2.setQuantity("4");
         this.books.add(book2); //add book2 to list books
@@ -188,7 +185,6 @@ class BookServiceTest {
         newBook.setLanguage("new language1");
         newBook.setPages(100);
         newBook.setDescription("new description1");
-        //newBook.setCoverImageUrl("www.newimagebook1.png");
         newBook.setPrice(1000.00);
         newBook.setQuantity("3");
         newBook.setPublicationDate(new Date(1726680002000L));
@@ -206,7 +202,6 @@ class BookServiceTest {
         assertThat(savedBook.getLanguage()).isEqualTo(newBook.getLanguage());
         assertThat(savedBook.getPages()).isEqualTo(newBook.getPages());
         assertThat(savedBook.getDescription()).isEqualTo(newBook.getDescription());
-        //assertThat(savedBook.getCoverImageUrl()).isEqualTo(newBook.getCoverImageUrl());
         assertThat(savedBook.getPrice()).isEqualTo(newBook.getPrice());
         assertThat(savedBook.getQuantity()).isEqualTo(newBook.getQuantity());
         assertThat(savedBook.getPublicationDate()).isEqualTo(newBook.getPublicationDate());
@@ -332,7 +327,5 @@ class BookServiceTest {
         //Then
         verify(bookRepository, times(1)).findById(uuid);
     }
-
-
 
 }

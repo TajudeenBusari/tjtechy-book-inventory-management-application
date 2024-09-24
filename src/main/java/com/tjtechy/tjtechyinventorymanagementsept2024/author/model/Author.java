@@ -11,7 +11,7 @@ import java.util.List;
 @Table(name = "author")
 public class Author implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long authorId;
 
     private String firstName;
@@ -95,6 +95,17 @@ public class Author implements Serializable {
 
     public Integer getNumberOfBooks() {
         return books.size();
+    }
+
+    public void removeBook(Book bookWrittenByAuthor) {
+        //remove book owner-->you remove owner(author), it removes their book
+        bookWrittenByAuthor.setOwner(null);
+        this.books.remove(bookWrittenByAuthor);
+    }
+
+    public void removeAllBooks() {
+        this.books.stream().forEach(book -> book.setOwner(null)); //stream through all their books
+        this.books = new ArrayList<>(); //empty the list
     }
 }
 /*
