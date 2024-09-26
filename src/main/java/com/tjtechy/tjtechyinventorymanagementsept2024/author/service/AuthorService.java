@@ -63,7 +63,7 @@ public class AuthorService {
         this.authorRepository.deleteById(id);
     }
 
-    public void assignBookToAuthor(UUID bookId, Long authorId) {
+    public void assignBookToAuthor(Long authorId,UUID bookId) {
         //book to be assigned. First check if it exists in the DB
         var bookToBeAssigned = this.bookRepository
                 .findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
@@ -73,6 +73,7 @@ public class AuthorService {
                 .findById(authorId).orElseThrow(() -> new AuthorNotFoundException(authorId));
 
         //Book assignment
+        //we need to see if the book is already owned by some author
         if (bookToBeAssigned.getOwner() != null) {
             bookToBeAssigned.getOwner().removeBook(bookToBeAssigned);
         }

@@ -6,6 +6,7 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.dto.AuthorDto
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.service.AuthorService;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.AuthorNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -302,6 +303,54 @@ class AuthorControllerTest {
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
                 .andExpect(jsonPath("$.message").value("Could not find author with Id " + nonExistingId))
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    void testAssignBookSuccess() throws Exception {
+        //Given
+        UUID bookId = UUID.randomUUID();
+        doNothing().when(this.authorService).assignBookToAuthor(1000L, bookId);
+
+        //When and //Then
+        this.mockMvc.perform(put(this.baseUrl + "/authors/1000/books/" + bookId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Book Assignment Success"))
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    void testAssignBookFailureWithNonExistingAuthorId() throws Exception {
+        //Given
+        UUID bookId = UUID.randomUUID();
+
+        doThrow(new AuthorNotFoundException(1000L))
+                .when(this.authorService)
+                .assignBookToAuthor(1000L, bookId);
+
+
+        //When and //Then
+        this.mockMvc.perform(put(this.baseUrl + "/authors/1000/books/" + bookId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find author with Id " + 1000L))
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    void testAssignBookFailureWithNonExistingBookId() throws Exception {
+        //Given
+        UUID bookId = UUID.randomUUID();
+        doThrow(new BookNotFoundException(bookId))
+        .when(this.authorService)
+                .assignBookToAuthor(1000L, bookId);
+
+        //When and //Then
+        this.mockMvc.perform(put(this.baseUrl + "/authors/1000/books/" + bookId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find book with isbn " + bookId))
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 }

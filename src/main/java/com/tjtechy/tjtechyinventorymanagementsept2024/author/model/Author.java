@@ -97,10 +97,10 @@ public class Author implements Serializable {
         return books.size();
     }
 
-    public void removeBook(Book bookWrittenByAuthor) {
+    public void removeBook(Book bookTobeAssigned) {
         //remove book owner-->you remove owner(author), it removes their book
-        bookWrittenByAuthor.setOwner(null);
-        this.books.remove(bookWrittenByAuthor);
+        bookTobeAssigned.setOwner(null);
+        this.books.remove(bookTobeAssigned);
     }
 
     public void removeAllBooks() {

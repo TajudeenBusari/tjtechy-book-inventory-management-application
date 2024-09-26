@@ -2,7 +2,10 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.author.service;
 
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.Author;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.repository.AuthorRepository;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.AuthorNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +29,9 @@ class AuthorServiceTest {
 
     @Mock
     private AuthorRepository authorRepository;
+
+    @Mock
+    private BookRepository bookRepository;
 
     @InjectMocks
     private AuthorService authorService;
@@ -244,6 +248,166 @@ class AuthorServiceTest {
 
         //Then
         verify(authorRepository, times(1)).findById(nonExistingAuthorId);
+    }
+
+    @Test
+    void testAssignBookSuccess() {
+        //Given
+        //create some fake data
+        //the goal is now to assign the book that originally belong to John to Bone
+        UUID bookId = UUID.randomUUID();
+        Date date = new Date(1726680002000L);
+        var book = new Book();
+        book.setISBN(bookId);
+        book.setPublisher("publisher 1");
+        book.setTitle("title 1");
+        book.setGenre("genre 1");
+        book.setDescription("description 1");
+        book.setPrice(200.0);
+        book.setEdition("edition 1");
+        book.setPages(10);
+        book.setPublicationDate(date);
+        book.setLanguage("book1 language");
+        book.setQuantity("10");
+
+        var author1 = new Author();
+        author1.setAuthorId(1000L);
+        author1.setFirstName("John");
+        author1.setLastName("Doe");
+        author1.setEmail("john@doe.com");
+        author1.setBiography("some biography1");
+
+        author1.addBook(book);
+
+        var author2 = new Author();
+        author2.setAuthorId(2000L);
+        author2.setFirstName("Bone");
+        author2.setLastName("Dre");
+        author2.setEmail("dre@doe.com");
+        author2.setBiography("some biography2");
+
+        //first find if they both exist, then we can do assignment
+        //we will only focus on happy part
+        given(this.bookRepository.findById(bookId)).willReturn(Optional.of(book));
+        given(this.authorRepository.findById(author2.getAuthorId())).willReturn(Optional.of(author2));
+
+        //When
+        this.authorService.assignBookToAuthor(2000L, bookId);
+
+        //Then
+        assertThat(book.getOwner().getAuthorId()).isEqualTo(author2.getAuthorId());
+        assertThat(author2.getBooks()).contains(book);
+    }
+
+    @Test
+    void testAssignBookFailureWithNonExistingAuthorId() {
+        //Given
+        //create some fake data
+        //the goal is now to assign the book that originally belong to John to Bone
+        UUID bookId = UUID.randomUUID();
+        Date date = new Date(1726680002000L);
+        var book = new Book();
+        book.setISBN(bookId);
+        book.setPublisher("publisher 1");
+        book.setTitle("title 1");
+        book.setGenre("genre 1");
+        book.setDescription("description 1");
+        book.setPrice(200.0);
+        book.setEdition("edition 1");
+        book.setPages(10);
+        book.setPublicationDate(date);
+        book.setLanguage("book1 language");
+        book.setQuantity("10");
+
+        var author1 = new Author();
+        author1.setAuthorId(1000L);
+        author1.setFirstName("John");
+        author1.setLastName("Doe");
+        author1.setEmail("john@doe.com");
+        author1.setBiography("some biography1");
+
+        author1.addBook(book);
+
+        //no need to define this, since it does not exist
+//        var author2 = new Author();
+//        author2.setAuthorId(2000L);
+//        author2.setFirstName("Bone");
+//        author2.setLastName("Dre");
+//        author2.setEmail("dre@doe.com");
+//        author2.setBiography("some biography2");
+
+        //first find if they both exist, then we can do assignment
+        //we will only focus on happy part
+        given(this.bookRepository.findById(bookId)).willReturn(Optional.of(book));
+        given(this.authorRepository.findById(1000L)).willReturn(Optional.empty());
+
+        //When
+        Throwable throwable = assertThrows(AuthorNotFoundException.class, () -> {
+            this.authorService.assignBookToAuthor(1000L, bookId);
+        });
+
+        //Then
+        assertThat(throwable)
+                .isInstanceOf(AuthorNotFoundException.class)
+                .hasMessage("Could not find author with Id 1000");
+        assertThat(book.getOwner().getAuthorId()).isEqualTo(author1.getAuthorId()); //also assert that ownership is not changed
+
+    }
+
+    @Test
+    void testAssignBookFailureWithNonExistingBookId() {
+        //Given
+        //create some fake data
+        //the goal is now to assign the book that originally belong to John to Bone
+
+        //No need for this since book does not exist
+          UUID bookId = UUID.randomUUID();
+//        Date date = new Date(1726680002000L);
+//        var book = new Book();
+//        book.setISBN(bookId);
+//        book.setPublisher("publisher 1");
+//        book.setTitle("title 1");
+//        book.setGenre("genre 1");
+//        book.setDescription("description 1");
+//        book.setPrice(200.0);
+//        book.setEdition("edition 1");
+//        book.setPages(10);
+//        book.setPublicationDate(date);
+//        book.setLanguage("book1 language");
+//        book.setQuantity("10");
+
+        //we don't need this as well because once the book does not exist, the flow will get even get to find author if author exist
+//        var author1 = new Author();
+//        author1.setAuthorId(1000L);
+//        author1.setFirstName("John");
+//        author1.setLastName("Doe");
+//        author1.setEmail("john@doe.com");
+//        author1.setBiography("some biography1");
+//
+//        author1.addBook(book);
+//
+//        var author2 = new Author();
+//        author2.setAuthorId(2000L);
+//        author2.setFirstName("Bone");
+//        author2.setLastName("Dre");
+//        author2.setEmail("dre@doe.com");
+//        author2.setBiography("some biography2");
+
+        //first find if they both exist, then we can do assignment
+        //we will only focus on happy part
+        given(this.bookRepository.findById(bookId)).willReturn(Optional.empty());
+
+
+        //When
+        Throwable throwable = assertThrows(BookNotFoundException.class, () -> {
+            this.authorService.assignBookToAuthor(1000L, bookId);
+        });
+
+
+        //Then
+        assertThat(throwable)
+                .isInstanceOf(BookNotFoundException.class)
+                .hasMessage("Could not find book with isbn " + bookId);
     }
 
 }

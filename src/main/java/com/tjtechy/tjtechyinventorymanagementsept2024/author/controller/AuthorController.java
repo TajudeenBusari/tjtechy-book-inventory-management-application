@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -84,6 +85,14 @@ public class AuthorController {
     public Result deleteAuthor(@PathVariable Long authorId) {
         this.authorService.deleteAuthor(authorId);
         return new Result(true, StatusCode.SUCCESS, "Delete Success");
+    }
+
+    //changing the ownership of book
+    @PutMapping("/{authorId}/books/{bookId}")
+    public Result assignBook(@PathVariable Long authorId, @PathVariable UUID bookId) {
+        this.authorService.assignBookToAuthor(authorId, bookId);
+        return new Result(true, StatusCode.SUCCESS, "Book Assignment Success");
+
     }
 
 }
