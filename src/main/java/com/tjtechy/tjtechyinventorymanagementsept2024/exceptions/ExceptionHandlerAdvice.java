@@ -2,6 +2,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.exceptions;
 
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.AuthorNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.LibraryUserNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.Result;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,12 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
+
+    @ExceptionHandler(LibraryUserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    Result handleLibraryUserNotFoundException(LibraryUserNotFoundException libraryUserNotFoundException) {
+        return new Result(false, StatusCode.NOT_FOUND, libraryUserNotFoundException.getMessage());
+    }
 
     @ExceptionHandler(BookNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
