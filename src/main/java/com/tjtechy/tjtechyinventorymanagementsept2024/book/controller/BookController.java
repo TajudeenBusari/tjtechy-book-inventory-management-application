@@ -77,6 +77,7 @@ public class BookController {
     }
 
     @PutMapping("/{bookIsbn}")
+    //refactor your code to have a separate dto class for update that will mot make any field required
     public Result updateBook(@Valid @RequestBody BookDto bookDto, @PathVariable UUID bookIsbn){
         //convert to Book
         Book update = this.bookDtoToBookConverter.convert(bookDto);
