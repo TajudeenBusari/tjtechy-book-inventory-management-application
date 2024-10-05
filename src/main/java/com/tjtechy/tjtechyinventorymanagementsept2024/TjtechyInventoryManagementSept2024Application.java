@@ -11,3 +11,7 @@ public class TjtechyInventoryManagementSept2024Application {
     }
 
 }
+/*TO MAKE REQUEST VIA TERMINAL
+* C:\Users\tajud>curl http://localhost:8081/api/v1/users -H "Authorization: Bearer jwToken" -v
+*
+* */
