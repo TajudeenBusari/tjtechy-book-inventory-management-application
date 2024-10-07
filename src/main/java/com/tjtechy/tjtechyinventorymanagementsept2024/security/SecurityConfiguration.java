@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -72,6 +73,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll() // Explicitly fallback to antMatcher inside requestMatchers.
+                        // Disallow everything else.
                         .anyRequest().authenticated()//always a good idea to put this as last for example author api end points
 
                 )
@@ -128,10 +131,9 @@ public class SecurityConfiguration {
 
 /*
 * admin user (has authority to view all authors)
-* userName:tayo-->Admin user
-* password:654321
-* userName:timi --->user
-* password: 123456
+* userName:ben-->Admin user
+* password:123456
+*http://localhost:8081/h2-console
 * */
 
 

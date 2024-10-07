@@ -13,5 +13,9 @@ public class TjtechyInventoryManagementSept2024Application {
 }
 /*TO MAKE REQUEST VIA TERMINAL
 * C:\Users\tajud>curl http://localhost:8081/api/v1/users -H "Authorization: Bearer jwToken" -v
-*
-* */
+* To launch application: java -jar target/tjtechy-inventory-management-sept2024-0.0.1-SNAPSHOT.jar
+* To build docker images: docker build -t tcu/tjtechy-inventory-management-sept2024:1.0 .
+* To instantiate the image: docker run -d -p 8081:8081 tcu/tjtechy-inventory-management-sept2024:1.0
+* docker run -d -p 8081:8080 tcu/tjtechy-inventory-management-sept2024:1.0
+ * To build new package: ./mvnw package -DskipTests
+ * */
