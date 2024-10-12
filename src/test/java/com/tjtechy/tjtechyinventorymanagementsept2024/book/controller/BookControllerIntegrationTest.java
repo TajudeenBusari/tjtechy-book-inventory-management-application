@@ -57,15 +57,13 @@ public class BookControllerIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         ResultActions resultActions = this.mockMvc
-                .perform(post(this.baseUrl + "/users/login").with(httpBasic("tayo", "654321")));
+                .perform(post(this.baseUrl + "/users/login").with(httpBasic("ben", "123456")));
 
         MvcResult mvcResult = resultActions.andDo(print()).andReturn();
         String contentAsString = mvcResult.getResponse().getContentAsString();
 
         JSONObject json = new JSONObject(contentAsString);
         this.token = "Bearer " + json.getJSONObject("data").getString("token");
-
-
     }
 
 
@@ -83,9 +81,10 @@ public class BookControllerIntegrationTest {
     @DisplayName("Check addBook with valid input (POST)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testAddBookSuccess() throws Exception {
+        UUID uuid = UUID.randomUUID();
         Date date = new Date(1726680002000L);
         var book = new BookDto(
-                null,
+                uuid,
                 "book 2",
                 date,
                 "zeenat",
@@ -142,23 +141,23 @@ public class BookControllerIntegrationTest {
     @Test
     @DisplayName("Check findBookByIdSuccess (GET)")
     void testFindBookByIdSuccess() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/books/0c1778a5-1bc8-43ea-bdeb-bc244f7f2298")
+        this.mockMvc.perform(get(this.baseUrl + "/books/31a171c8-9b73-49c1-b09c-fc2f08da3b35")
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
-                .andExpect(jsonPath("$.data.ISBN").value("0c1778a5-1bc8-43ea-bdeb-bc244f7f2298"))
-                .andExpect(jsonPath("$.data.title").value("book 2"))
-                .andExpect(jsonPath("$.data.language").value("yoruba"))
-                .andExpect(jsonPath("$.data.publicationDate").value("2024-09-18T17:20:02.000+00:00"))
-                .andExpect(jsonPath("$.data.pages").value(1000))
-                .andExpect(jsonPath("$.data.price").value(1500.0))
-                .andExpect(jsonPath("$.data.edition").value("second edition"))
-                .andExpect(jsonPath("$.data.Genre").value("horror"))
-                .andExpect(jsonPath("$.data.publisher").value("zeenat"))
-                .andExpect(jsonPath("$.data.description").value("some description 2"))
-                .andExpect(jsonPath("$.data.Quantity").value("10"));
+                .andExpect(jsonPath("$.data.ISBN").value("31a171c8-9b73-49c1-b09c-fc2f08da3b35"))
+                .andExpect(jsonPath("$.data.title").value("Book 1"))
+                .andExpect(jsonPath("$.data.language").value("some book1 language"))
+                .andExpect(jsonPath("$.data.publicationDate").value("2024-09-13T17:49:41.000+00:00"))
+                .andExpect(jsonPath("$.data.pages").value(50))
+                .andExpect(jsonPath("$.data.price").value(100.0))
+                .andExpect(jsonPath("$.data.edition").value("some book1 edition"))
+                .andExpect(jsonPath("$.data.Genre").value("some book1 genre"))
+                .andExpect(jsonPath("$.data.publisher").value("john publishing Oy"))
+                .andExpect(jsonPath("$.data.description").value("some book1 description"))
+                .andExpect(jsonPath("$.data.Quantity").value("6"));
     }
 
     @Test
@@ -228,7 +227,7 @@ public class BookControllerIntegrationTest {
 
         var json = this.objectMapper.writeValueAsString(book);
 
-        this.mockMvc.perform(put(this.baseUrl + "/books/0c1778a5-1bc8-43ea-bdeb-bc244f7f2298")
+        this.mockMvc.perform(put(this.baseUrl + "/books/892cc179-d593-4667-8792-9069f0b078cf")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
                 .accept(MediaType.APPLICATION_JSON)
@@ -236,7 +235,7 @@ public class BookControllerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Update Success"))
-                .andExpect(jsonPath("$.data.ISBN").value("0c1778a5-1bc8-43ea-bdeb-bc244f7f2298"))
+                .andExpect(jsonPath("$.data.ISBN").value("892cc179-d593-4667-8792-9069f0b078cf"))
                 .andExpect(jsonPath("$.data.publisher").value("inayah"))
                 .andExpect(jsonPath("$.data.Genre").value("fiction"))
                 .andExpect(jsonPath("$.data.title").value("update book 2"));

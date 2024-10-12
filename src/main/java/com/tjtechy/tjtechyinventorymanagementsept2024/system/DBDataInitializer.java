@@ -6,6 +6,9 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.service.LibraryUserService;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import org.hibernate.id.factory.internal.UUIDGenerationTypeStrategy;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +40,10 @@ public class DBDataInitializer implements CommandLineRunner {
         var book1 = new Book();
         UUID bookIsbn1 = UUID.fromString("31a171c8-9b73-49c1-b09c-fc2f08da3b35");
 
+
+        //UUID uuid = new UUID(100L, 200L);
+        //e5b703b1-9f94-4dfc-9549-5c3f971a080e
+
         book1.setISBN(bookIsbn1);
         book1.setTitle("Book 1");
         book1.setPublisher("john publishing Oy");
@@ -46,7 +53,6 @@ public class DBDataInitializer implements CommandLineRunner {
         book1.setLanguage("some book1 language");
         book1.setPages(50);
         book1.setDescription("some book1 description");
-        //book1.setCoverImageUrl("www.imagebook1.png");
         book1.setPrice(100.00);
         book1.setQuantity("6");
 
@@ -143,7 +149,7 @@ public class DBDataInitializer implements CommandLineRunner {
       user1.setUserName("ben");
       user1.setPassword("123456");
       user1.setEnabled(true);
-      user1.setRoles("admin user");
+      user1.setRoles("Admin user");
 
       LibraryUser user2 = new LibraryUser();
       user2.setUserId(2);

@@ -13,8 +13,8 @@ import java.util.UUID;
 @Table(name = "books")
 public class Book implements Serializable {
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    //@GeneratedValue
+    //@UuidGenerator
 
     private UUID ISBN;
 
