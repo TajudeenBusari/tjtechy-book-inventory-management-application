@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.*;
 
@@ -25,6 +26,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+/**
+ * this will override the active profile in application.yml file.
+ * Irrespective of the active profile, the test will only run using the
+ * h2-database
+ *
+ */
+@ActiveProfiles(value = "h2-database")
 class AuthorServiceTest {
 
     @Mock

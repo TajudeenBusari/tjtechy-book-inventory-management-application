@@ -1,44 +1,22 @@
+#here we define the profile that the application will run on, when started
+#for example, I don't want any data manipulation or application inserting
+#data from the DbInitializer into the msql database
+#on start, the spring boot will check this file and load the application specific profile that is active
+#if you start the application, the active profile will be shown in the console
 server:
   port: 8081
-
 spring:
+  profiles:
+    #active: h2-database
+    active: mysql-database
   application:
     name: tjtechy-inventory-management-sept2024
-
-  #datasource:
-    #url: jdbc:h2:mem:tjtechy-inventory-management-sept2024
-    #username: root
-    #password: root
-    #driver-class-name: com.mysql.cj.jdbc.Driver
-  #jpa:
-    #hibernate:
-      #ddl-auto: update
-    #show-sql: true
-    #properties:
-      #hibernate:
-        #dialect: org.hibernate.dialect.MySQLDialect
-
-      #format_sql: true
-    #database: mysql
-    #database-platform: org.hibernate.dialect.MySQL8Dialect
-
-    datasource:
-      url: jdbc:h2:mem:tjtechy-inventory-management-sept2024
-      username: sa
-      password:
-    jpa:
-      hibernate:
-        ddl-auto: update
-      show-sql: true
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
 
 api:
   endpoint:
     base-url: /api/v1
-
-
-
-
-
-
-#logging.level.org.hibernate.SQL=DEBUG
-#logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE

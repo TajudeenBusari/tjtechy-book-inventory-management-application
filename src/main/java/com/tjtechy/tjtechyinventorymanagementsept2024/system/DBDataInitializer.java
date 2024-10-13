@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import org.hibernate.id.factory.internal.UUIDGenerationTypeStrategy;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -18,6 +19,8 @@ import java.util.UUID;
 //I COMMENT THIS BECAUSE IT KEEPS GENERATING RECORD IN THE DB EACH TIME I START THE APPLICATION
 
 @Component
+@Profile("h2-database") //will only be loaded if active profile is h2 in memory database
+//@Profile("mysql-database") //will only be loaded if active profile is mysql database. I just used this to initialize the DB in mysql db
 public class DBDataInitializer implements CommandLineRunner {
 
     private final BookRepository bookRepository;

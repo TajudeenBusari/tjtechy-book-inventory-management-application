@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,6 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @DisplayName("Integration tests for Author API endpoints")
 @Tag("integration")
+/**
+ * this will override the active profile in application.yml file.
+ * Irrespective of the active profile, the test will only run using the
+ * h2-database
+ *
+ */
+@ActiveProfiles(value = "h2-database")
 public class AuthorControllerIntegrationTest {
 
   @Autowired
