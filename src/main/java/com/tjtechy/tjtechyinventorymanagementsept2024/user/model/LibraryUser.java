@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Table(name = "users")
 public class LibraryUser implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO) //it will auto generate the identity key and won't use the one in the DbInitializer
     private Integer userId;
 
     @NotEmpty(message = "username is required")

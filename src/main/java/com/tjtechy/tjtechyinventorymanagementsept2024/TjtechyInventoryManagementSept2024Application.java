@@ -18,4 +18,6 @@ public class TjtechyInventoryManagementSept2024Application {
 * To instantiate the image: docker run -d -p 8081:8081 tcu/tjtechy-inventory-management-sept2024:1.0
 * docker run -d -p 8081:8080 tcu/tjtechy-inventory-management-sept2024:1.0
  * To build new package: ./mvnw package -DskipTests
+ * DROP TABLE IF EXISTS author_seq; works well to delete table from my work bench
+ * but first delete books
  * */

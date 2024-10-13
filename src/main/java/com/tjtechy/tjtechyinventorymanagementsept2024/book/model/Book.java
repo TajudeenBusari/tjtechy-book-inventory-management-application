@@ -15,6 +15,7 @@ public class Book implements Serializable {
     @Id
     //@GeneratedValue
     //@UuidGenerator
+    //to add book, you need to manually generate the uuid and include as part of the request
 
     private UUID ISBN;
 
