@@ -8,7 +8,8 @@ server:
 spring:
   profiles:
     #active: h2-database
-    active: mysql-database
+    #active: mysql-database
+    active: postgres-database
   application:
     name: tjtechy-inventory-management-sept2024
   mvc:

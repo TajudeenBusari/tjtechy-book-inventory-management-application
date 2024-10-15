@@ -21,6 +21,7 @@ import java.util.UUID;
 @Component
 @Profile("h2-database") //will only be loaded if active profile is h2 in memory database
 //@Profile("mysql-database") //will only be loaded if active profile is mysql database. I just used this to initialize the DB in mysql db
+//@Profile("postgres-database")
 public class DBDataInitializer implements CommandLineRunner {
 
     private final BookRepository bookRepository;
@@ -171,7 +172,5 @@ public class DBDataInitializer implements CommandLineRunner {
       this.libraryUserService.save(user1);
       this.libraryUserService.save(user2);
       this.libraryUserService.save(user3);
-
-
     }
 }

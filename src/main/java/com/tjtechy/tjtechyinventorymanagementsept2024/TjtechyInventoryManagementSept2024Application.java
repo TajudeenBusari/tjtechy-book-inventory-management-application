@@ -20,4 +20,5 @@ public class TjtechyInventoryManagementSept2024Application {
  * To build new package: ./mvnw package -DskipTests
  * DROP TABLE IF EXISTS author_seq; works well to delete table from my work bench
  * but first delete books
+ * Postgres supports UUID by default, so I have implemented this in my spring boot application
  * */
