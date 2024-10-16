@@ -3,6 +3,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.book.service;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
+import io.micrometer.core.annotation.Timed;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class BookService {
                 .orElseThrow(() -> new BookNotFoundException(bookIsbn));
     }
 
+    @Timed("findAllBooksService.time") //metrics to measure time taken
     public List<Book> findAll() {
         //return List.of(); //empty
         return this.bookRepository.findAll();

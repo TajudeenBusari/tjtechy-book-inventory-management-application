@@ -92,8 +92,17 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
@@ -102,6 +111,13 @@
                 <!--This is what is used to package executable jar in a spring boot application-->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <!--prevents test cases errors during Maven building in CI. EVEN WITHOUT THIA MY BUILD IS SUCCESSFUL-->
@@ -112,6 +128,12 @@
                     <forkCount>1</forkCount>
                 </configuration>
             </plugin>
+            <!--helps to generate git.properties at root of the class path. Check under target folder-->
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+            </plugin>
+
         </plugins>
     </build>
 

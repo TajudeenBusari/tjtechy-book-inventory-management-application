@@ -7,6 +7,7 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.service.BookService;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.Result;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,17 +25,21 @@ public class BookController {
 
     private final BookDtoToBookConverter bookDtoToBookConverter;
 
-    public BookController(BookService bookService, BookToBookDtoConverter bookToBookDtoConverter, BookDtoToBookConverter bookDtoToBookConverter) {
+    //create our own custom metrics, for example to know which book is more popular
+    private final MeterRegistry meterRegistry;
+
+    public BookController(BookService bookService, BookToBookDtoConverter bookToBookDtoConverter, BookDtoToBookConverter bookDtoToBookConverter, MeterRegistry meterRegistry) {
         this.bookService = bookService;
         this.bookToBookDtoConverter = bookToBookDtoConverter;
         this.bookDtoToBookConverter = bookDtoToBookConverter;
+      this.meterRegistry = meterRegistry;
     }
 
     @GetMapping("/{bookIsbn}")
     public Result findBookByISBN(@PathVariable UUID bookIsbn){
 
         Book foundBook = this.bookService.findByIsbn(bookIsbn);
-
+        meterRegistry.counter("book.isbn" + bookIsbn).increment(); //returns a new counter or an existing counter
         //Convert found book to dto
         var bookDto = this.bookToBookDtoConverter.convert(foundBook);
 

@@ -21,3 +21,50 @@ spring:
 api:
   endpoint:
     base-url: /api/v1
+
+Management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,beans,configprops,heapdump,httpexchanges,loggers,mappings,custom-beans
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    env:
+      show-values: always
+    configprops:
+      show-values: always
+    #enable shutdown #you should not do this bcos someone may shut remotely shut down the app in the prod site
+    #shutdown:
+      #enabled: true
+
+  info:
+    build:
+      enabled: true
+    env:
+      enabled: true
+    git:
+      enabled: true
+      mode: full
+
+    java:
+      enabled: true
+    os:
+      enabled: true
+
+info:
+  app:
+    name: tjtechy-inventory-management-sept2024
+    description: A web application that manages books their authors and users
+    version: @project.version@ #retrieves project version from pom.xml
+    author: Tajudeen Busari
+    links:
+      github: https://github.com/TajudeenBusari/tjtechy-book-inventory-management-application
+
+
+
+
+
+#exposure is done over http or jmx, http is the most popular
