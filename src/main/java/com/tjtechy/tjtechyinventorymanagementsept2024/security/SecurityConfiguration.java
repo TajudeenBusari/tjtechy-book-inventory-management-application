@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -73,6 +74,9 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
+                        //security rules for actuator endpoints
+                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info")).hasAuthority("ROLE_Admin")
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll() // Explicitly fallback to antMatcher inside requestMatchers.
                         // Disallow everything else.
                         .anyRequest().authenticated()//always a good idea to put this as last for example author api end points
