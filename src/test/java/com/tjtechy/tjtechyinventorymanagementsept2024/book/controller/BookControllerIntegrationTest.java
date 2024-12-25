@@ -107,17 +107,6 @@ public class BookControllerIntegrationTest {
         );
 
 
-//        book.setTitle("Book Title");
-//        book.setLanguage("English");
-//        book.setPublicationDate(date);
-//        book.setPages(100);
-//        book.setPrice(100.0);
-//        book.setEdition("first edition");
-//        book.setQuantity("10");
-//        book.setGenre("fiction");
-//        book.setPublisher("young");
-//        book.setDescription("description1");
-
 
         var json = this.objectMapper.writeValueAsString(book);
         this.mockMvc.perform(post(this.baseUrl + "/books")
@@ -149,23 +138,55 @@ public class BookControllerIntegrationTest {
     @Test
     @DisplayName("Check findBookByIdSuccess (GET)")
     void testFindBookByIdSuccess() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/books/31a171c8-9b73-49c1-b09c-fc2f08da3b35")
+
+        //create a book
+        UUID uuid = UUID.randomUUID();
+        Date date = new Date(1726680002000L);
+        var book = new BookDto(
+                uuid,
+                "some title10",
+                date,
+                "zeenat",
+                "horror",
+                "second edition10",
+                "yoruba",
+                1000,
+                "some description 10",
+                1500.0,
+                "10", null
+        );
+        var json = this.objectMapper.writeValueAsString(book);
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var resultContent = postResult.getResponse().getContentAsString();
+        var response = new JSONObject(resultContent);
+        var bookId = response.getJSONObject("data").getString("ISBN");
+
+
+
+        this.mockMvc.perform(get(this.baseUrl + "/books/{bookId}", bookId)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
-                .andExpect(jsonPath("$.data.ISBN").value("31a171c8-9b73-49c1-b09c-fc2f08da3b35"))
-                .andExpect(jsonPath("$.data.title").value("Book 1"))
-                .andExpect(jsonPath("$.data.language").value("some book1 language"))
-                .andExpect(jsonPath("$.data.publicationDate").value("2024-09-13T17:49:41.000+00:00"))
-                .andExpect(jsonPath("$.data.pages").value(50))
-                .andExpect(jsonPath("$.data.price").value(100.0))
-                .andExpect(jsonPath("$.data.edition").value("some book1 edition"))
-                .andExpect(jsonPath("$.data.Genre").value("some book1 genre"))
-                .andExpect(jsonPath("$.data.publisher").value("john publishing Oy"))
-                .andExpect(jsonPath("$.data.description").value("some book1 description"))
-                .andExpect(jsonPath("$.data.Quantity").value("6"));
+                .andExpect(jsonPath("$.data.ISBN").value(bookId))
+                .andExpect(jsonPath("$.data.title").value("some title10"))
+                .andExpect(jsonPath("$.data.language").value("yoruba"))
+                .andExpect(jsonPath("$.data.publicationDate").isNotEmpty())
+                .andExpect(jsonPath("$.data.pages").value(1000))
+                .andExpect(jsonPath("$.data.price").value(1500.0))
+                .andExpect(jsonPath("$.data.edition").value("second edition10"))
+                .andExpect(jsonPath("$.data.Genre").value("horror"))
+                .andExpect(jsonPath("$.data.publisher").value("zeenat"))
+                .andExpect(jsonPath("$.data.description").value("some description 10"))
+                .andExpect(jsonPath("$.data.Quantity").value("10"));
     }
 
     @Test
@@ -217,25 +238,55 @@ public class BookControllerIntegrationTest {
     @Test
     @DisplayName("Check updateBook with valid input (put)")
     void testUpdateBookSuccess() throws Exception {
-        Date date = new Date(1726680002000L);
-        var book = new BookDto(
+
+        //create a book to be updated
+        //UUID uuid = UUID.randomUUID();
+        Date existingDate = new Date(1726680002000L);
+        var existingBook = new BookDto(
                 null,
-                "update book 2",
-                date,
-                "inayah",
-                "fiction",
-                "second edition",
-                "yoruba",
+                "some title11",
+                existingDate,
+                "ayo",
+                "cartoon",
+                "second edition11",
+                "finnish",
                 1000,
-                "some description 2",
+                "some description 11",
+                1500.0,
+                "10", null
+        );
+        var createJson = this.objectMapper.writeValueAsString(existingBook);
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var resultContent = postResult.getResponse().getContentAsString();
+        var response = new JSONObject(resultContent);
+        var bookId = response.getJSONObject("data").getString("ISBN");
+
+        //UPDATE
+        var updatedBook = new BookDto(
+                null,
+                "some title11",
+                existingDate,
+                "inayah",//updated
+                "cartoon",
+                "second edition11",
+                "yoruba", //updated
+                1000,
+                "some description 11",
                 1500.0,
                 "10", null
 
         );
 
-        var json = this.objectMapper.writeValueAsString(book);
+        var json = this.objectMapper.writeValueAsString(updatedBook);
 
-        this.mockMvc.perform(put(this.baseUrl + "/books/892cc179-d593-4667-8792-9069f0b078cf")
+        this.mockMvc.perform(put(this.baseUrl + "/books/{bookId}", bookId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
                 .accept(MediaType.APPLICATION_JSON)
@@ -243,10 +294,10 @@ public class BookControllerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Update Success"))
-                .andExpect(jsonPath("$.data.ISBN").value("892cc179-d593-4667-8792-9069f0b078cf"))
+                .andExpect(jsonPath("$.data.ISBN").value(bookId))
                 .andExpect(jsonPath("$.data.publisher").value("inayah"))
-                .andExpect(jsonPath("$.data.Genre").value("fiction"))
-                .andExpect(jsonPath("$.data.title").value("update book 2"));
+                .andExpect(jsonPath("$.data.Genre").value("cartoon"))
+                .andExpect(jsonPath("$.data.title").value("some title11"));
 
     }
 

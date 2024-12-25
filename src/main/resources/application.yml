@@ -26,7 +26,7 @@ Management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,env,beans,configprops,heapdump,httpexchanges,loggers,mappings,custom-beans
+        include: health,info,metrics,env,beans,configprops,heapdump,httpexchanges,loggers,mappings,custom-beans,prometheus
   endpoint:
     health:
       show-details: always
@@ -53,6 +53,9 @@ Management:
       enabled: true
     os:
       enabled: true
+  tracing:
+    sampling:
+      probability: 1 #only for demo purpose, change it back to 0.1 in production.
 
 info:
   app:
@@ -64,7 +67,7 @@ info:
       github: https://github.com/TajudeenBusari/tjtechy-book-inventory-management-application
 
 
-
+#postgres
 
 
 #exposure is done over http or jmx, http is the most popular

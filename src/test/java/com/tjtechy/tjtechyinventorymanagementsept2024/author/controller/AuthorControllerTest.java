@@ -1,6 +1,7 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.author.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tjtechy.tjtechyinventorymanagementsept2024.TjtechyInventoryManagementSept2024Application;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.Author;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.dto.AuthorDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.service.AuthorService;
@@ -15,9 +16,11 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,7 +36,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@SpringBootTest
+@WebMvcTest(AuthorController.class) //THIS ENSURES THIS TESTS WILL NOT FAIL IF I RUN EVERYTHING AT ONCE IN THE CONTROLLER FOLDER
+//@SpringBootTest //THIS TEST CLASS KEEPS FAILING WHEN I RUN ALL TESTS IN THE CONTROLLER FOLDER AT THE SAME TIME WITH THIS ANNOTATION
 @AutoConfigureMockMvc(addFilters = false)//turns off spring security
 /**
  * this will override the active profile in application.yml file.
@@ -42,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @ActiveProfiles(value = "h2-database")
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AuthorControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -107,7 +112,7 @@ class AuthorControllerTest {
         authorList = new ArrayList<>(); //initialize list with null
 
         var author1 = new Author();
-        author1.setAuthorId(1000L);
+       author1.setAuthorId(1000L);
         author1.setFirstName("idowu");
         author1.setLastName("noble");
         author1.setEmail("idowu@gmail.com");
@@ -138,14 +143,15 @@ class AuthorControllerTest {
     @Test
     void testFindAuthorByIdSuccess() throws Exception {
         //Given
-        given(this.authorService.findAuthorById(1000L)).willReturn(authorList.get(0));
+        given(this.authorService.findAuthorById(authorList.get(0).getAuthorId())).willReturn(authorList.get(0));
 
         //When and //Then
-        this.mockMvc.perform(get(this.baseUrl + "/authors/1000").accept(MediaType.APPLICATION_JSON))
+        var author1Id = authorList.get(0).getAuthorId();
+        this.mockMvc.perform(get(this.baseUrl + "/authors/{author1Id}", author1Id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
-                .andExpect(jsonPath("$.data.authorId").value(1000))
+                .andExpect(jsonPath("$.data.authorId").value(authorList.get(0).getAuthorId()))
                 .andExpect(jsonPath("$.data.firstName").value("idowu"))
                 .andExpect(jsonPath("$.data.lastName").value("noble"))
                 .andExpect(jsonPath("$.data.email").value("idowu@gmail.com"))

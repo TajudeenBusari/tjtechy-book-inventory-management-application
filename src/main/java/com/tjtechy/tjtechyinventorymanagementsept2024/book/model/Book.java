@@ -13,9 +13,7 @@ import java.util.UUID;
 @Table(name = "books")
 public class Book implements Serializable {
     @Id
-    //@GeneratedValue
-    //@UuidGenerator
-    //to add book, you need to manually generate the uuid and include as part of the request
+    @GeneratedValue(strategy = GenerationType.UUID)
 
     private UUID ISBN;
 
@@ -119,13 +117,6 @@ public class Book implements Serializable {
         this.description = description;
     }
 
-//    public String getCoverImageUrl() {
-//        return coverImageUrl;
-//    }
-//
-//    public void setCoverImageUrl(String coverImageUrl) {
-//        this.coverImageUrl = coverImageUrl;
-//    }
 
     public Double getPrice() {
         return price;
@@ -161,7 +152,6 @@ public class Book implements Serializable {
         this.language = language;
         this.pages = pages;
         this.description = description;
-        //this.coverImageUrl = coverImageUrl;
         this.price = price;
         Quantity = quantity;
     }

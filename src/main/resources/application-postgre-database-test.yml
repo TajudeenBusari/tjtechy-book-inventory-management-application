@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tjtechy-inventory-management
+    username: postgres
+    password: postgres
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+#This is created primarily for the integration test using test containers
+#the schema.sql which is used to create the schema in the BDis found
+#under the resources folder under test directory

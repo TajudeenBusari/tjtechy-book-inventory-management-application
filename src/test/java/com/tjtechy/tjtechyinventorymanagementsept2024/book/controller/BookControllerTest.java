@@ -1,11 +1,14 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tjtechy.tjtechyinventorymanagementsept2024.author.controller.AuthorController;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.service.BookService;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +17,11 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,12 +33,12 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@SpringBootTest
+@WebMvcTest(BookController.class) //THIS ENSURES THIS TESTS WILL NOT FAIL IF I RUN EVERYTHING AT ONCE IN THE CONTROLLER FOLDER
+//@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)//turns off spring security
 /**
  * this will override the active profile in application.yml file.
@@ -42,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  */
 @ActiveProfiles(value = "h2-database")
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 
 class BookControllerTest {
 
@@ -54,6 +60,9 @@ class BookControllerTest {
     @Autowired
     ObjectMapper objectMapper; //from fasterxml.jackson.databind
 
+    @MockBean
+    MeterRegistry meterRegistry;
+
     //let's create a list of Books
     List<Book> books;
 
@@ -65,7 +74,7 @@ class BookControllerTest {
         books = new ArrayList<>();
 
         var book1 = new Book();
-        var bookIsbn1 = UUID.fromString("64534f0e-7525-11ef-b864-0242ac120002");
+        var bookIsbn1 = UUID.randomUUID();
         book1.setISBN(bookIsbn1);
         book1.setTitle("Book 1");
         book1.setPublisher("person 1");
@@ -75,7 +84,6 @@ class BookControllerTest {
         book1.setLanguage("some book1 language");
         book1.setPages(100);
         book1.setDescription("some book1 description");
-       // book1.setCoverImageUrl("www.imagebook1.png");
         book1.setPrice(1000.00);
         book1.setQuantity("3");
         this.books.add(book1);
@@ -91,7 +99,6 @@ class BookControllerTest {
         book2.setLanguage("some book2 language");
         book2.setPages(100);
         book2.setDescription("some book2 description");
-       // book2.setCoverImageUrl("www.imagebook2.png");
         book2.setPrice(1000.00);
         book2.setQuantity("4");
         this.books.add(book2);
@@ -107,7 +114,6 @@ class BookControllerTest {
         book3.setLanguage("some book3 language");
         book3.setPages(100);
         book3.setDescription("some book2 description");
-        //book3.setCoverImageUrl("www.imagebook3.png");
         book3.setPrice(1000.00);
         book3.setQuantity("5");
         this.books.add(book3);
@@ -123,7 +129,6 @@ class BookControllerTest {
         book4.setLanguage("some book4 language");
         book4.setPages(100);
         book4.setDescription("some book2 description");
-        //book4.setCoverImageUrl("www.imagebook3.png");
         book4.setPrice(100.00);
         book4.setQuantity("6");
         this.books.add(book4);
@@ -138,12 +143,12 @@ class BookControllerTest {
     void testFindBookByISBNSuccess() throws Exception {
         //Given
 
-        //GET THE UUID into a variable
-//        String baseurl = ""
-        UUID bookIsbn = UUID.fromString("058949bf-949f-4406-8f3f-76265cff8006");
+        given(this.bookService.findByIsbn(books.get(0).getISBN())).willReturn(books.get(0));
 
-        given(this.bookService.findByIsbn(UUID.fromString("058949bf-949f-4406-8f3f-76265cff8006")))
-                .willReturn(this.books.get(3));
+        var bookIsbn = books.get(0).getISBN();
+
+        Counter mockCounter = mock(Counter.class);
+        given(meterRegistry.counter("book.isbn" + bookIsbn)).willReturn(mockCounter);
 
         //When and Then
         this.mockMvc.perform(get(this.baseUrl+ "/books/{bookIsbn}", bookIsbn).accept(MediaType.APPLICATION_JSON))
@@ -151,7 +156,11 @@ class BookControllerTest {
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
                 .andExpect(jsonPath("$.data.ISBN").value(bookIsbn.toString()))
-                .andExpect(jsonPath("$.data.title").value("Book 4"));
+                .andExpect(jsonPath("$.data.title").value("Book 1"));
+
+        // Verify that the service and counter were called
+        verify(this.bookService).findByIsbn(bookIsbn);
+        verify(mockCounter).increment();
     }
 
     @Test

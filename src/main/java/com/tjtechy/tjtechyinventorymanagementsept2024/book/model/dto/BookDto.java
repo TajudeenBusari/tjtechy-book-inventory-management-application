@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public record BookDto(
-        UUID ISBN,  //to add book, you need to manually generate the uuid and include as part of the request
+        UUID ISBN,  //to add book, you need to manually generate the uuid and include as part of the request--->, not anymore
         @NotEmpty(message = "title is required.")
         String title,
         Date publicationDate,

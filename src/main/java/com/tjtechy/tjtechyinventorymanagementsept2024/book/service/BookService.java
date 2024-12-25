@@ -4,6 +4,7 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.B
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,8 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
+    //findByIsbnService will be used as a span name
+    @Observed(name = "book", contextualName = "findByIsbnService")
     public Book findByIsbn(UUID bookIsbn) {
         return this.bookRepository
                 .findById(bookIsbn)

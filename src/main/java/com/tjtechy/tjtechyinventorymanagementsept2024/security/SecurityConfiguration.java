@@ -75,8 +75,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
                         //security rules for actuator endpoints
-                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
-                        .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info")).hasAuthority("ROLE_Admin")
+                        .requestMatchers(EndpointRequest.to("health", "info", "prometheus")).permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info", "prometheus")).hasAuthority("ROLE_Admin")
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll() // Explicitly fallback to antMatcher inside requestMatchers.
                         // Disallow everything else.
                         .anyRequest().authenticated()//always a good idea to put this as last for example author api end points
@@ -137,6 +137,8 @@ public class SecurityConfiguration {
 * admin user (has authority to view all authors)
 * userName:ben-->Admin user
 * password:123456
+* Login with these credentials as basic login to generate token and use to log in to
+* other end points or use basic the basic login credentials for all
 *http://localhost:8081/h2-console
 * */
 

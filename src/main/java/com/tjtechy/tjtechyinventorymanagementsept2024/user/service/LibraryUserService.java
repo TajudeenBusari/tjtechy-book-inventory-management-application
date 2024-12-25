@@ -16,7 +16,8 @@ import java.util.List;
 
 @Service
 @Transactional
-public class LibraryUserService implements UserDetailsService {
+public class
+LibraryUserService implements UserDetailsService {
 
     private final LibraryUserRepository libraryUserRepository;
 
