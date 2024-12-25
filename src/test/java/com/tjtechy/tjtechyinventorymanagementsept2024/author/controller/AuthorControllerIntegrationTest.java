@@ -2,6 +2,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.author.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.dto.AuthorDto;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Date;
+
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -30,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @DisplayName("Integration tests for Author API endpoints")
 @Tag("integration")
-/**
+/*
  * this will override the active profile in application.yml file.
  * Irrespective of the active profile, the test will only run using the
  * h2-database
@@ -188,13 +191,11 @@ public class AuthorControllerIntegrationTest {
   void testDeleteAuthorSuccess() throws Exception {
     this.mockMvc.perform(delete(this.baseUrl + "/authors/2")
             .accept(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, this.token))
             .andExpect(jsonPath("$.flag").value(true))
             .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
             .andExpect(jsonPath("$.message").value("Delete Success"));
     this.mockMvc.perform(get(this.baseUrl + "/authors/2")
-                    .accept(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, this.token))
             .andExpect(jsonPath("$.flag").value(false))
@@ -209,7 +210,6 @@ public class AuthorControllerIntegrationTest {
   void testDeleteAuthorFailureWithNonExistingId() throws Exception {
     this.mockMvc.perform(delete(this.baseUrl + "/authors/4")
                     .accept(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, this.token))
             .andExpect(jsonPath("$.flag").value(false))
             .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
@@ -220,8 +220,40 @@ public class AuthorControllerIntegrationTest {
   @Test
   @DisplayName("Check assign book to author with valid Ids (Put)")
   void testAssignAuthorSuccess() throws Exception{
-    this.mockMvc.perform(put(this.baseUrl + "/authors/3/books/31a171c8-9b73-49c1-b09c-fc2f08da3b35")//originally belong to author Taju
-            .accept(MediaType.APPLICATION_JSON)
+
+    Date date = new Date(1726680002000L);
+    var book = new BookDto(
+            null,
+            "title1",
+            date,
+            "publisher1",
+            "genre1",
+            "edition1",
+            "finnish",
+            1000,
+            "description1",
+            100.0,
+            "10",
+            null
+    );
+    var json = this.objectMapper.writeValueAsString(book);
+    var postResult = this.mockMvc.perform(post(this.baseUrl + "/books")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, this.token))
+            .andExpect(jsonPath("$.flag").value(true))
+            .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+            .andExpect(jsonPath("$.message").value("Add Success"))
+            .andExpect(jsonPath("$.data.ISBN").isNotEmpty())
+            .andReturn();
+
+    // Extract the bookId (UUID) from the POST response
+    var responseContent = postResult.getResponse().getContentAsString();
+    var response = new JSONObject(responseContent);
+    var bookId = response.getJSONObject("data").getString("ISBN");
+
+    this.mockMvc.perform(put(this.baseUrl + "/authors/3/books/{bookId}", bookId)
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, this.token))
             .andExpect(jsonPath("$.flag").value(true))

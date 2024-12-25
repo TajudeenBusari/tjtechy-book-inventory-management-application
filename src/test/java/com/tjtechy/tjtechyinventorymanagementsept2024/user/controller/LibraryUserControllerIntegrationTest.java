@@ -3,6 +3,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.user.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.controller.BookController;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import org.json.JSONObject;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,10 +33,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @DisplayName("Integration tests for Library User API endpoints")
 @Tag("integration")
-/**
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+/*
  * this will override the active profile in application.yml file.
  * Irrespective of the active profile, the test will only run using the
  * h2-database
@@ -95,7 +99,6 @@ public class LibraryUserControllerIntegrationTest {
 
   @Test
   @DisplayName("Check findLibraryUser with valid Id (GET): User with ROLE_user Accessing Another LibraryUser's Info")
-
   void testFindLibraryUserWithUserAccessingAnyLibraryUserSuccess() throws Exception {
 
     var resultActions = this.mockMvc.perform(post(this.baseUrl + "/users/login")

@@ -22,7 +22,6 @@ public class AuthService {
         this.libraryUserToLibraryUserDtoConverter = libraryUserToLibraryUserDtoConverter;
     }
 
-
     public Map<String, Object> createLoginInfo(Authentication authentication) {
 
         /*
