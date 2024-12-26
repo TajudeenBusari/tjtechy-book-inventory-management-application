@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * h2-database
  *
  */
-@ActiveProfiles(value = "h2-database")
+@ActiveProfiles(value = "application-h2-database")
 public class BookControllerIntegrationTest {
 
     @Autowired
@@ -332,24 +332,5 @@ public class BookControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Could not find book with isbn " + nonExistingBookId))
                 .andExpect(jsonPath("$.data").isEmpty());
     }
-
-//    @Test
-//    @DisplayName("Check deleteBook with valid input (Delete)")
-//    void testDeleteBookWithSuccess() throws Exception {
-//        this.mockMvc.perform(delete(this.baseUrl + "/books/3d1388ba-1a94-45ae-8531-47f8fd8d0d91")
-//                .accept(MediaType.APPLICATION_JSON)
-//                        .header(HttpHeaders.AUTHORIZATION, this.token))
-//                .andExpect(jsonPath("$.flag").value(true))
-//                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-//                .andExpect(jsonPath("$.message").value("Delete Success"));
-//        this.mockMvc.perform(get(this.baseUrl + "/books/3d1388ba-1a94-45ae-8531-47f8fd8d0d91")
-//                        .accept(MediaType.APPLICATION_JSON)
-//                        .header(HttpHeaders.AUTHORIZATION, this.token))
-//                .andExpect(jsonPath("$.flag").value(false))
-//                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-//                .andExpect(jsonPath("$.message").value("Could not find book with isbn 3d1388ba-1a94-45ae-8531-47f8fd8d0d91"))
-//                .andExpect(jsonPath("$.data").isEmpty());
-//
-//    }
 
 }

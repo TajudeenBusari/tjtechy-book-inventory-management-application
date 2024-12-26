@@ -19,10 +19,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -54,13 +55,13 @@ class BookControllerTest {
     @Autowired
     MockMvc mockMvc;
 
-    @MockBean //for controller test, we use MockBean
+    @MockitoBean //for controller test, we use MockBean
     BookService bookService;
 
     @Autowired
     ObjectMapper objectMapper; //from fasterxml.jackson.databind
 
-    @MockBean
+    @MockitoBean
     MeterRegistry meterRegistry;
 
     //let's create a list of Books
