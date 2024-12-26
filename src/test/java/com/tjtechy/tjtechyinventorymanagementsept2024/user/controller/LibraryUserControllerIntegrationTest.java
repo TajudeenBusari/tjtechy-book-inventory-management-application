@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * h2-database
  *
  */
-@ActiveProfiles(value = "h2-database")
+@ActiveProfiles(value = "application-h2-database")
 public class LibraryUserControllerIntegrationTest {
 
   @Autowired
@@ -146,37 +146,6 @@ public class LibraryUserControllerIntegrationTest {
    * for now it is only Admin that can update or delete user
    * @throws Exception
    */
-//  @Test
-//  @DisplayName("Check updateLibraryUser with valid input (PUT): with Role_user Updating own info")
-//  void testUpdateLibraryUserWithUserOwnInfo() throws Exception {
-//    var resultActions = this.mockMvc.perform(post(this.baseUrl + "/users/login")
-//            .with(httpBasic("kim", "654321")));
-//    var mvcResult = resultActions.andDo(print()).andReturn();
-//    var conetntString = mvcResult.getResponse().getContentAsString();
-//    JSONObject json = new JSONObject(conetntString);
-//    String kimToken = "Bearer " + json.getJSONObject("data").getString("token");
-//
-//    var libraryUser = new LibraryUser();
-//    libraryUser.setUserName("kim123"); //it was kim
-//    libraryUser.setEnabled(true);
-//    libraryUser.setRoles("user");
-//
-//    var kimJson = this.objectMapper.writeValueAsString(libraryUser);
-//
-//    this.mockMvc.perform(put(this.baseUrl + "/users/2")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(kimJson)
-//            .accept(MediaType.APPLICATION_JSON)
-//            .header(HttpHeaders.AUTHORIZATION, kimToken))
-//            .andExpect(jsonPath("$.flag").value(true))
-//            .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-//            .andExpect(jsonPath("$.message").value("Update Success"))
-//            .andExpect(jsonPath("$.data.userId").value(2))
-//            .andExpect(jsonPath("$.data.username").value("kim123"))
-//            .andExpect(jsonPath("$.data.enabled").value(true))
-//            .andExpect(jsonPath("$.data.roles").value("user"));
-//
-//  }
 
   @Test
   @DisplayName("Check deleteLibraryUser with valid input (DELETE)")
@@ -221,30 +190,4 @@ public class LibraryUserControllerIntegrationTest {
    * Not yet implemented in the controller
     * @throws Exception
    */
-//  @Test
-//  @DisplayName("Check changeLibraryUserPassword with valid input (PATCH)")
-//  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-//  void testChangeUserPassword() throws Exception {
-//    ResultActions resultActions = this.mockMvc.perform(post(this.baseUrl + "/users/login")
-//            .with(httpBasic("kim", "654321"))); // httpBasic() is from spring-security-test.
-//    MvcResult mvcResult = resultActions.andDo(print()).andReturn();
-//    String contentAsString = mvcResult.getResponse().getContentAsString();
-//    JSONObject json = new JSONObject(contentAsString);
-//    String kimToken = "Bearer " + json.getJSONObject("data").getString("token");
-//
-//    // Given
-//    Map<String, String> passwordMap = new HashMap<>();
-//    passwordMap.put("oldPassword", "654321");
-//    passwordMap.put("newPassword", "Abc12345");
-//    passwordMap.put("confirmNewPassword", "Abc12345");
-//
-//    String passwordMapJson = this.objectMapper.writeValueAsString(passwordMap);
-//
-//    this.mockMvc.perform(patch(this.baseUrl + "/users/2/password")
-//                    .contentType(MediaType.APPLICATION_JSON).content(passwordMapJson)
-//                    .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, kimToken))
-//            .andExpect(jsonPath("$.flag").value(true))
-//            .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-//            .andExpect(jsonPath("$.message").value("Change Password Success"));
-//  }
 }

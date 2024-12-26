@@ -45,9 +45,6 @@ public class DBDataInitializer implements CommandLineRunner {
         UUID bookIsbn1 = UUID.fromString("31a171c8-9b73-49c1-b09c-fc2f08da3b35");
 
 
-        //UUID uuid = new UUID(100L, 200L);
-        //e5b703b1-9f94-4dfc-9549-5c3f971a080e
-
         book1.setISBN(bookIsbn1);
         book1.setTitle("Book 1");
         book1.setPublisher("john publishing Oy");
@@ -71,7 +68,6 @@ public class DBDataInitializer implements CommandLineRunner {
         book2.setLanguage("some book2 language");
         book2.setPages(70);
         book2.setDescription("some book2 description");
-        //book2.setCoverImageUrl("www.imagebook2.png");
         book2.setPrice(98.00);
         book2.setQuantity("3");
 
@@ -86,7 +82,7 @@ public class DBDataInitializer implements CommandLineRunner {
         book3.setLanguage("some book3 language");
         book3.setPages(70);
         book3.setDescription("some book3 description");
-        //book3.setCoverImageUrl("www.imagebook3.png");
+
         book3.setPrice(98.00);
         book3.setQuantity("7");
 
@@ -101,7 +97,7 @@ public class DBDataInitializer implements CommandLineRunner {
         book4.setLanguage("some book4 language");
         book4.setPages(40);
         book4.setDescription("some book4 description");
-        //book4.setCoverImageUrl("www.imagebook4.png");
+
         book4.setPrice(120.00);
         book4.setQuantity("10");
 

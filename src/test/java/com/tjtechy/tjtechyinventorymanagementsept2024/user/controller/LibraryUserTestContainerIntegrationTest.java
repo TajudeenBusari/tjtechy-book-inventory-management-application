@@ -59,7 +59,7 @@ public class LibraryUserTestContainerIntegrationTest {
     private String aToken;
     private String nToken;
 
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15.0")
+    private final static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15.0")
             .withDatabaseName("inventory-management-sept2024")
             .withUsername("postgres")
             .withPassword("postgres");

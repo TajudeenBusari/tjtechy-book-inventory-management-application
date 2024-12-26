@@ -7,7 +7,7 @@ server:
   port: 8081
 spring:
   profiles:
-    #active: h2-database
+#    active: h2-database
     #active: mysql-database
     active: postgres-database
   application:
