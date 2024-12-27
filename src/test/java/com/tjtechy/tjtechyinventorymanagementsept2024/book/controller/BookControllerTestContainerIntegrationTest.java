@@ -6,6 +6,7 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.author.repository.AuthorRe
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.ChatClient;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.repository.LibraryUserRepository;
@@ -44,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Tag("Integration")
-@ActiveProfiles(value = "application-postgre-database-test")
+@ActiveProfiles(value = "postgre-database-test")
 public class BookControllerTestContainerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -55,6 +56,9 @@ public class BookControllerTestContainerIntegrationTest {
     @Autowired
     private AuthorRepository authorRepository;
 
+//    @Autowired
+//    private ChatClient chatClient;
+
     @Autowired
     private BookRepository bookRepository;
 
@@ -63,6 +67,12 @@ public class BookControllerTestContainerIntegrationTest {
 
     @Value("${api.endpoint.base-url}")
     private String baseUrl;
+
+//    @Value("${ai.openai.endpoint}")
+//    private String openAiEndpoint;
+//
+//    @Value("${ai.openai.api-key}")
+//    private String openAiApiKey;
 
     @Autowired
     private ObjectMapper objectMapper;

@@ -378,6 +378,19 @@ class BookControllerTest {
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 
+    @Test
+    void testSummarizeBookSuccess() throws Exception {
+        //Given
+        given(this.bookService.summarize(Mockito.anyList())).willReturn("The summary includes 4 books with their authors");
+
+        //When and Then
+        this.mockMvc.perform(get(this.baseUrl + "/books/summary").accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Summary Success"))
+                .andExpect(jsonPath("$.data").value("The summary includes 4 books with their authors"));
+    }
+
 
 
 

@@ -24,7 +24,7 @@ public record BookDto(
         int pages,
         @NotEmpty(message = "description is required.")
         String description,
-        //String coverImageUrl,
+
         @NotNull(message = "Price is required")  // Makes sure price cannot be null
         @Positive(message = "Price must be positive") // Ensures price is greater than zero
         Double price,

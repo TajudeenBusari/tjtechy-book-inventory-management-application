@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Tag("Integration")
-@ActiveProfiles(value = "application-postgre-database-test")
+@ActiveProfiles(value = "postgre-database-test")
 public class AuthorControllerTestContainerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
