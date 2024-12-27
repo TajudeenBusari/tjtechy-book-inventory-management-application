@@ -1,6 +1,15 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.Author;
+import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.dto.AuthorDto;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.ChatClient;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.ChatRequest;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.ChatResponse;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.Choice;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.Message;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
@@ -42,6 +51,9 @@ class BookServiceTest {
 
     @InjectMocks
     BookService bookService;
+
+    @Mock
+    ChatClient chatClient;
 
     List<Book> books;
 
@@ -334,6 +346,84 @@ class BookServiceTest {
 
         //Then
         verify(bookRepository, times(1)).findById(uuid);
+    }
+
+    @Test
+    void testSummarizeSuccess() throws JsonProcessingException {
+        //Given
+        var authorDto = new AuthorDto(
+                10000L,
+                "John",
+                "Doe",
+                "joh@doe.com",
+                "some author biography",
+                3);
+        List <BookDto> bookDtos = List.of(
+                new BookDto(
+                        UUID.fromString("64534f0e-7525-11ef-b864-0242ac120002"),
+                        "title1",
+                        new Date(1726680002000L),
+                        "publisher1",
+                        "genre1",
+                        "edition1",
+                        "language1",
+                        100,
+                        "description1",
+                        1000.00,
+                        "3",
+                        authorDto
+                ),
+                new BookDto(
+                        UUID.fromString("9ab93081-738b-4acb-b0d9-9113c59a38f4"),
+                        "title2",
+                        new Date(1726163381000L),
+                        "publisher2",
+                        "genre2",
+                        "edition2",
+                        "language2",
+                        100,
+                        "description2",
+                        1000.00,
+                        "4",
+                        authorDto
+                ),
+                new BookDto(
+                        UUID.fromString("76d452b3-add8-4980-9ae9-0750ccd524cf"),
+                        "title3",
+                        new Date(1726422581000L),
+                        "publisher3",
+                        "genre3",
+                        "edition3",
+                        "language3",
+                        100,
+                        "description3",
+                        1000.00,
+                        "5",
+                        authorDto
+                )
+        );
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        var jsonArray = objectMapper.writeValueAsString(bookDtos);
+
+
+        //define the behaviour of the chatClient
+        var messages = List.of(
+                new Message("system", "Your task is to generate a short summary of a given JSON array in at most 100 words. The summary must include the number of books, each book's description and the publisher information. Please don't include the statement, The JSON array is as follows:"),
+                new Message("user", jsonArray)
+        );
+        var chatRequest = new ChatRequest("gpt-4", messages);
+        var chatResponse = new ChatResponse(List.of(
+                new Choice(0, new Message("assistant", "The summary is: There are 3 books. The first book is titled title1, published by publisher1. It has 100 pages and is described as description1. The second book is titled title2, published by publisher2. It has 100 pages and is described as description2. The third book is titled title3, published by publisher3. It has 100 pages and is described as description3."))));
+        given(this.chatClient.generate(chatRequest)).willReturn(chatResponse);
+
+        //When
+        String summary = bookService.summarize(bookDtos);
+
+        //Then
+        assertThat(summary)
+                .isEqualTo("The summary is: There are 3 books. The first book is titled title1, published by publisher1. It has 100 pages and is described as description1. The second book is titled title2, published by publisher2. It has 100 pages and is described as description2. The third book is titled title3, published by publisher3. It has 100 pages and is described as description3.");
+        verify(chatClient, times(1)).generate(chatRequest);
     }
 
 }

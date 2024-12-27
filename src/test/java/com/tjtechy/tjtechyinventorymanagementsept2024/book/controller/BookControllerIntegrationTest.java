@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * h2-database
  *
  */
-@ActiveProfiles(value = "application-h2-database")
+@ActiveProfiles(value = "h2-database")
 public class BookControllerIntegrationTest {
 
     @Autowired

@@ -1,11 +1,14 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.exceptions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.AuthorNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.LibraryUserNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.Result;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,6 +21,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 
 import java.util.HashMap;
@@ -91,6 +97,33 @@ public class ExceptionHandlerAdvice {
         return new Result(false, StatusCode.FORBIDDEN, "No permission", ex.getMessage());
     }
 
+    @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
+    ResponseEntity<Result> handleRestClientException(HttpStatusCodeException ex) throws JsonProcessingException {
+        var exMessage = ex.getMessage();
+
+        //Replace <EOL> with actual newline
+        exMessage = exMessage.replace("<EOL>", "\n");
+
+        //Extract the json part from the string
+        var jsonPart = exMessage.substring(exMessage.indexOf("{"), exMessage.lastIndexOf("}") + 1);
+
+        //create an objectMapper instance
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        //parse the JSON string to a JsonNode
+        var rootNode = objectMapper.readTree(jsonPart);
+
+        //extract the message.
+        var formattedExceptionMessage = rootNode.path("error").path("message").asText();
+
+        return new ResponseEntity<>(
+                new Result(false,
+                        ex.getStatusCode().value(),
+                        "A rest client error occurs, see data for details.",
+                        formattedExceptionMessage),
+                ex.getStatusCode());
+    }
+
     /**
      * fall back handles any unhandled exception
      * @param ex
@@ -103,6 +136,8 @@ public class ExceptionHandlerAdvice {
     Result handleOtherException(Exception ex) {
         return new Result(false, StatusCode.INTERNAL_SERVER_ERROR, "A server internal error occurs", ex.getMessage());
     }
+
+
 
 
 

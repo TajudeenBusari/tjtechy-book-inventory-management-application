@@ -1,5 +1,6 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.converter.BookDtoToBookConverter;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.converter.BookToBookDtoConverter;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
@@ -97,6 +98,19 @@ public class BookController {
     public Result deleteBook(@PathVariable UUID bookIsbn){
         this.bookService.delete(bookIsbn);
         return new Result(true, StatusCode.SUCCESS, "Delete Success");//we use the constructor with 3 params
+    }
+
+    @GetMapping("/summary")
+    public Result summarizeBooks() throws JsonProcessingException {
+        //get the total number of books from the database
+        List<Book> allBooks = this.bookService.findAll();
+        //convert the books to dtos
+        List<BookDto> bookDtos = allBooks.stream()
+                .map(book -> this.bookToBookDtoConverter.convert(book))
+                .collect(Collectors.toList());
+        String bookSummary = this.bookService.summarize(bookDtos);
+
+        return new Result(true, StatusCode.SUCCESS, "Summary Success", bookSummary);
     }
 
 }

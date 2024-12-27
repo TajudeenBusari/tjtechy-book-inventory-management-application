@@ -1,5 +1,11 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.ChatClient;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.ChatRequest;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.Message;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.repository.BookRepository;
@@ -17,9 +23,12 @@ public class BookService {
 
     private final BookRepository bookRepository;
 
-    public BookService(BookRepository bookRepository) {
+    private final ChatClient chatClient;
+
+    public BookService(BookRepository bookRepository, ChatClient chatClient) {
 
         this.bookRepository = bookRepository;
+        this.chatClient = chatClient;
     }
 
     //findByIsbnService will be used as a span name
@@ -65,6 +74,21 @@ public class BookService {
                 .orElseThrow(() -> new BookNotFoundException(bookIsbn));
         this.bookRepository.deleteById(bookIsbn);
 
+    }
+
+    public String summarize(List<BookDto> bookDtos) throws JsonProcessingException {
+
+      ObjectMapper objectMapper = new ObjectMapper();
+      String jsonArray = objectMapper.writeValueAsString(bookDtos);
+
+      //prepare some messages for summarizing.
+      List<Message> messages = List.of(
+              new Message("system", "Your task is to generate a short summary of a given JSON array in at most 100 words. The summary must include the number of books, each book's description and the publisher information. Please don't include the statement, The JSON array is as follows:"),
+              new Message("user", jsonArray)
+      );
+      var chatRequest = new ChatRequest("gpt-4", messages);
+      var chatResponse = this.chatClient.generate(chatRequest);
+      return chatResponse.choices().get(0).message().content();
     }
 
 }

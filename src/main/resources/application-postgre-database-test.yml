@@ -12,6 +12,10 @@ spring:
       ddl-auto: none
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+ai:
+    openai:
+        endpoint: ${OPENAI_ENDPOINT:https://api.openai.com/v1/chat/completions} #environment variable with a default value
+        api-key: ${OPENAI_API_KEY:YOUR_API_KEY} #environment variable with default value
 
 #This is created primarily for the integration test using test containers
 #the schema.sql which is used to create the schema in the BDis found
