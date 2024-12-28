@@ -1,5 +1,6 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.book.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.Author;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.repository.AuthorRepository;
@@ -25,6 +26,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -32,6 +35,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -56,8 +61,7 @@ public class BookControllerTestContainerIntegrationTest {
     @Autowired
     private AuthorRepository authorRepository;
 
-//    @Autowired
-//    private ChatClient chatClient;
+
 
     @Autowired
     private BookRepository bookRepository;
@@ -68,11 +72,7 @@ public class BookControllerTestContainerIntegrationTest {
     @Value("${api.endpoint.base-url}")
     private String baseUrl;
 
-//    @Value("${ai.openai.endpoint}")
-//    private String openAiEndpoint;
-//
-//    @Value("${ai.openai.api-key}")
-//    private String openAiApiKey;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -338,12 +338,63 @@ public class BookControllerTestContainerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Delete Success"));
+    }
+
+    @Test
+    @DisplayName("Check find book by criteria (POST)")
+    void testFindBookByDescription() throws Exception {
+        //Given
+        Map<String, String> searchCriteria = new HashMap<>();
+        searchCriteria.put("description", "book1 description");
+
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("page", "0");
+        requestParams.add("size", "10");
+        requestParams.add("sort", "title,desc");
 
 
+        //serialize the searchCriteria
+        String json = this.objectMapper.writeValueAsString(searchCriteria);
 
+        //When and Then
+        this.mockMvc.perform(post(this.baseUrl + "/books/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                        .params(requestParams)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Search Success"));
+    }
 
+    @Test
+    @DisplayName("Check find book by criteria (POST)")
+    void testFindBookByTitleAndDescription() throws Exception {
+        //Given
+        Map<String, String> searchCriteria = new HashMap<>();
+        searchCriteria.put("title", "book1");
+        searchCriteria.put("description", "book1 description");
+
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("page", "0");
+        requestParams.add("size", "10");
+        requestParams.add("sort", "title,desc");
+
+        //serialize the searchCriteria
+        String json = this.objectMapper.writeValueAsString(searchCriteria);
+
+        //When and Then
+        this.mockMvc.perform(post(this.baseUrl + "/books/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .params(requestParams)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Search Success"));
 
     }
+
 
 
 }

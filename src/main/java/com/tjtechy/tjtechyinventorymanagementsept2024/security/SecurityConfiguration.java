@@ -69,6 +69,7 @@ public class SecurityConfiguration {
         return http
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(HttpMethod.GET, baseUrl + "/books/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, baseUrl + "/books/search").permitAll()
                         .requestMatchers(HttpMethod.GET, baseUrl + "/users/**").hasAuthority("ROLE_Admin")//only admin can get all users info
                         .requestMatchers(HttpMethod.GET, baseUrl + "/users").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_Admin")

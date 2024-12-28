@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -112,6 +113,13 @@ public class BookController {
         String bookSummary = this.bookService.summarize(bookDtos);
 
         return new Result(true, StatusCode.SUCCESS, "Summary Success", bookSummary);
+    }
+
+    @PostMapping("/search")
+    public Result findBookByCriteria(@RequestBody Map<String, String> searchCriteria, Pageable pageable){
+        Page<Book> bookPage = this.bookService.findByCriteria(searchCriteria, pageable);
+        Page<BookDto> bookDtoPage = bookPage.map(this.bookToBookDtoConverter::convert);
+        return new Result(true, StatusCode.SUCCESS, "Search Success", bookDtoPage);
     }
 
 }
