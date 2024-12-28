@@ -2,6 +2,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.book.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.BookSpecs;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.ChatClient;
 import com.tjtechy.tjtechyinventorymanagementsept2024.client.ai.chat.dto.ChatRequest;
@@ -14,9 +15,12 @@ import io.micrometer.observation.annotation.Observed;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -94,7 +98,32 @@ public class BookService {
     }
 
     public Page<Book> findAll(Pageable pageable) {
-        return this.bookRepository.findAll(pageable);
+
+      return this.bookRepository.findAll(pageable);
     }
 
+  public Page<Book> findByCriteria(Map<String, String> searchCriteria, Pageable pageable) {
+    Specification<Book> spec = Specification.where(null); //good starting point for dynamic queries
+
+    if (StringUtils.hasLength(searchCriteria.get("ISBN"))) {
+      spec = spec.and(BookSpecs.hasISBN(UUID.fromString(searchCriteria.get("ISBN"))));
+    }
+
+    if (StringUtils.hasLength(searchCriteria.get("title"))) {
+      spec = spec.and(BookSpecs.containsTitle(searchCriteria.get("title")));
+    }
+
+    if (StringUtils.hasLength(searchCriteria.get("description"))) {
+      spec = spec.and(BookSpecs.containsDescription(searchCriteria.get("description")));
+    }
+
+    if (StringUtils.hasLength(searchCriteria.get("ownerFirstName"))) {
+      spec = spec.and(BookSpecs.hasOwnerFirstName(searchCriteria.get("ownerFirstName")));
+    }
+
+    if (StringUtils.hasLength(searchCriteria.get("ownerLastName"))) {
+      spec = spec.and(BookSpecs.hasOwnerLastName(searchCriteria.get("ownerLastName")));
+    }
+    return this.bookRepository.findAll(spec, pageable);
+  }
 }
