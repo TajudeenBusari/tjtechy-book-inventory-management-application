@@ -10,6 +10,8 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.system.Result;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,17 +57,16 @@ public class BookController {
     }
 
     @GetMapping
-    public Result findAllBooks(){
+    public Result findAllBooks(Pageable pageable){
 
-        List<Book> foundBooks = this.bookService.findAll();
+        Page<Book> bookPage = this.bookService.findAll(pageable);
 
-        //convert found books to Dtos
-        List<BookDto> booksDto = foundBooks
-                .stream()
-                .map(foundBook -> this.bookToBookDtoConverter.convert(foundBook))
-                .collect(Collectors.toList());
+        //convert found booksDtoPage to Dtos
+        Page<BookDto> booksDtoPage = bookPage
 
-        return new Result(true, StatusCode.SUCCESS, "Find All Success", booksDto);
+                .map(foundBook -> this.bookToBookDtoConverter.convert(foundBook));
+
+        return new Result(true, StatusCode.SUCCESS, "Find All Success", booksDtoPage);
     }
 
     @PostMapping

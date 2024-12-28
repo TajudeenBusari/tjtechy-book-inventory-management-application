@@ -20,11 +20,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -186,20 +191,28 @@ class BookControllerTest {
     @Test
     void testFindAllBooksSuccess() throws Exception {
         //Given
-        given(this.bookService.findAll()).willReturn(this.books);
+        Pageable pageable = PageRequest.of(0, 20);
+        PageImpl<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
+
+        given(this.bookService.findAll(Mockito.any(Pageable.class))).willReturn(bookPage);
+
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("page", "0");
+        requestParams.add("size", "20");
+        //you can add more request params here
 
         //When and Then
-        this.mockMvc.perform(get(this.baseUrl + "/books").accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(get(this.baseUrl + "/books").accept(MediaType.APPLICATION_JSON).params(requestParams))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Find All Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(this.books.size())))
-                .andExpect(jsonPath("$.data[0].ISBN").value(this.books.get(0).getISBN().toString()))
-                .andExpect(jsonPath("$.data[0].title").value("Book 1"))
-                .andExpect(jsonPath("$.data[0].publisher").value("person 1"))
-                .andExpect(jsonPath("$.data[1].ISBN").value(this.books.get(1).getISBN().toString()))
-                .andExpect(jsonPath("$.data[1].title").value("Book 2"))
-                .andExpect(jsonPath("$.data[1].publisher").value("person 2"));
+                .andExpect(jsonPath("$.data.content", Matchers.hasSize(this.books.size())))
+                .andExpect(jsonPath("$.data.content[0].ISBN").value(this.books.get(0).getISBN().toString()))
+                .andExpect(jsonPath("$.data.content[0].title").value("Book 1"))
+                .andExpect(jsonPath("$.data.content[0].publisher").value("person 1"))
+                .andExpect(jsonPath("$.data.content[1].ISBN").value(this.books.get(1).getISBN().toString()))
+                .andExpect(jsonPath("$.data.content[1].title").value("Book 2"))
+                .andExpect(jsonPath("$.data.content[1].publisher").value("person 2"));
     }
 
     @Test

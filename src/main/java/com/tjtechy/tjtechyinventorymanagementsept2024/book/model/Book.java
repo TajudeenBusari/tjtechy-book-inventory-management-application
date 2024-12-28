@@ -33,8 +33,6 @@ public class Book implements Serializable {
 
     private String description;
 
-    //private String coverImageUrl;
-
     private Double price;
 
     private String Quantity;
