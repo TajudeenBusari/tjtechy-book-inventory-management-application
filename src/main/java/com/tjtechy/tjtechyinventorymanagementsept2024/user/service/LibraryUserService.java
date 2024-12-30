@@ -6,6 +6,7 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.MyUserPrincipal
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.repository.LibraryUserRepository;
 import jakarta.transaction.Transactional;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -56,9 +57,17 @@ LibraryUserService implements UserDetailsService {
                 .orElseThrow(() -> new LibraryUserNotFoundException(userId));
 
         //update we are not updating password here
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        //if user is not an admin, then the user can only update her username.
+        if (authentication.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_Admin"))) {
+            foundlibraryUser.setUserName(updateLibraryUser.getUserName());
+
+        } else {
+        //if user is an admin, then the user can update username, roles and enabled status.
         foundlibraryUser.setUserName(updateLibraryUser.getUserName());
         foundlibraryUser.setRoles(updateLibraryUser.getRoles());
         foundlibraryUser.setEnabled(updateLibraryUser.isEnabled());
+        }
 
         return this.libraryUserRepository.save(foundlibraryUser);
     }
