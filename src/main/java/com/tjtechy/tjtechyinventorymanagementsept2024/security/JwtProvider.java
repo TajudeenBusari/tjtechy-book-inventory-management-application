@@ -1,5 +1,6 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.security;
 
+import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.MyUserPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -34,6 +35,7 @@ public class JwtProvider {
                 .issuedAt(now)
                 .expiresAt(now.plus(expiresIn, ChronoUnit.HOURS))
                 .subject(authentication.getName())
+                .claim("userId", ((MyUserPrincipal) (authentication.getPrincipal())).getLibraryUser().getUserId())
                 .claim("authorities", authorities)
                 .build();
 

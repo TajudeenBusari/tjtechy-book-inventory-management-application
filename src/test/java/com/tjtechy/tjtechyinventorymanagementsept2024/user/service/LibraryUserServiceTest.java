@@ -2,6 +2,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.user.service;
 
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.LibraryUserNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
+import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.MyUserPrincipal;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.repository.LibraryUserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -170,37 +173,91 @@ class LibraryUserServiceTest {
     }
 
     @Test
-    void testUpdateLibraryUserSuccess() {
+    void testUpdateLibraryUserByAdminSuccess() {
         //Given
         var oldLibraryUser = new LibraryUser();
-        oldLibraryUser.setUserId(1);
-        oldLibraryUser.setUserName("user1");
-        oldLibraryUser.setPassword("password1");
+        oldLibraryUser.setUserId(2);
+        oldLibraryUser.setUserName("eric");
+        oldLibraryUser.setPassword("654321");
         oldLibraryUser.setEnabled(true);
         oldLibraryUser.setRoles("user");
 
         var updateLibraryUser = new LibraryUser();
-        updateLibraryUser.setUserId(1);
-        updateLibraryUser.setUserName("user1-update");
-        updateLibraryUser.setPassword("password1");
+        oldLibraryUser.setUserName("eric-update"); //update username
+        updateLibraryUser.setPassword("654321");
         updateLibraryUser.setEnabled(true);
-        updateLibraryUser.setRoles("admin user");
+        oldLibraryUser.setRoles("Admin user"); //update role
 
         //first find if user exists and save
         given(libraryUserRepository.findById(oldLibraryUser.getUserId())).willReturn(Optional.of(oldLibraryUser));
         given(libraryUserRepository.save(oldLibraryUser)).willReturn(oldLibraryUser);
 
+        //create a fake libraryUser that will do the update and set role to Admin
+        var libraryUser = new LibraryUser();
+        libraryUser.setRoles("Admin");
+        var myUserPrincipal = new MyUserPrincipal(libraryUser);
+
+        //create a fake security context
+        var securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(myUserPrincipal, null, myUserPrincipal.getAuthorities()));
+        SecurityContextHolder.setContext(securityContext);
+
+
         //When
         LibraryUser updatedLibraryUser = libraryUserService.update(updateLibraryUser, oldLibraryUser.getUserId());
 
         //then
-        assertThat(updatedLibraryUser.getUserId()).isEqualTo(updateLibraryUser.getUserId());
+        assertThat(updatedLibraryUser.getUserId()).isEqualTo(oldLibraryUser.getUserId());
         assertThat(updatedLibraryUser.getUserName()).isEqualTo(updateLibraryUser.getUserName());
         assertThat(updatedLibraryUser.getPassword()).isEqualTo(updateLibraryUser.getPassword());
         assertThat(updatedLibraryUser.isEnabled()).isEqualTo(updateLibraryUser.isEnabled());
         assertThat(updatedLibraryUser.getRoles()).isEqualTo(updateLibraryUser.getRoles());
         verify(libraryUserRepository, times(1)).findById(oldLibraryUser.getUserId());
     }
+
+    @Test
+    void testUpdateLibraryUserByUserSuccess() {
+        //Given
+        var oldLibraryUser = new LibraryUser();
+        oldLibraryUser.setUserId(2);
+        oldLibraryUser.setUserName("eric");
+        oldLibraryUser.setPassword("654321");
+        oldLibraryUser.setEnabled(true);
+        oldLibraryUser.setRoles("user");
+
+        var updateLibraryUser = new LibraryUser();
+        oldLibraryUser.setUserName("eric-update"); //update username
+        updateLibraryUser.setPassword("654321");
+        updateLibraryUser.setEnabled(true);
+        updateLibraryUser.setRoles("user"); //update role
+
+        //first find if user exists and save
+        given(libraryUserRepository.findById(oldLibraryUser.getUserId())).willReturn(Optional.of(oldLibraryUser));
+        given(libraryUserRepository.save(oldLibraryUser)).willReturn(oldLibraryUser);
+
+        //create a fake libraryUser that will do the update and set role to Admin
+        var libraryUser = new LibraryUser();
+        libraryUser.setRoles("user");
+        var myUserPrincipal = new MyUserPrincipal(libraryUser);
+
+        //create a fake security context
+        var securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(myUserPrincipal, null, myUserPrincipal.getAuthorities()));
+        SecurityContextHolder.setContext(securityContext);
+
+        //When
+        LibraryUser updatedLibraryUser = libraryUserService.update(updateLibraryUser, oldLibraryUser.getUserId());
+
+        //Then
+
+        assertThat(updatedLibraryUser.getUserName()).isEqualTo(updateLibraryUser.getUserName());
+        assertThat(updatedLibraryUser.getPassword()).isEqualTo(updateLibraryUser.getPassword());
+        assertThat(updatedLibraryUser.isEnabled()).isEqualTo(updateLibraryUser.isEnabled());
+        verify(libraryUserRepository, times(1)).findById(oldLibraryUser.getUserId());
+
+    }
+
+
 
     @Test
     void testUpdateLibraryUserNotFound() {

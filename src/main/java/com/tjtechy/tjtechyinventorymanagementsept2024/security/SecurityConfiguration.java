@@ -48,14 +48,18 @@ public class SecurityConfiguration {
 
     private final CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler;
 
+
+    private final UserRequestAuthorizationManager userRequestAuthorizationManager;
+
         public SecurityConfiguration(CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint,
                                      CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint,
-                                     CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler) throws NoSuchAlgorithmException {
+                                     CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler, UserRequestAuthorizationManager userRequestAuthorizationManager) throws NoSuchAlgorithmException {
             this.customBasicAuthenticationEntryPoint = customBasicAuthenticationEntryPoint;
             this.customBearerTokenAuthenticationEntryPoint = customBearerTokenAuthenticationEntryPoint;
             this.customBearerTokenAccessDeniedHandler = customBearerTokenAccessDeniedHandler;
+          this.userRequestAuthorizationManager = userRequestAuthorizationManager;
 
-            //Generate a public/private key pair
+          //Generate a public/private key pair
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);//The generated key will have a size of 2048 bits
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
@@ -70,10 +74,10 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(HttpMethod.GET, baseUrl + "/books/**").permitAll()
                         .requestMatchers(HttpMethod.POST, baseUrl + "/books/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, baseUrl + "/users/**").hasAuthority("ROLE_Admin")//only admin can get all users info
-                        .requestMatchers(HttpMethod.GET, baseUrl + "/users").hasAuthority("ROLE_Admin")
+                        .requestMatchers(HttpMethod.GET, baseUrl + "/users").hasAuthority("ROLE_Admin") //only admin can get all users info
+                        .requestMatchers(HttpMethod.GET, baseUrl + "/users/**").access(this.userRequestAuthorizationManager) //the authorization rule is defined in the UserRequestAuthorizationManager
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_Admin")
-                        .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
+                        .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").access(this.userRequestAuthorizationManager)
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
                         //security rules for actuator endpoints
                         .requestMatchers(EndpointRequest.to("health", "info", "prometheus")).permitAll()
@@ -129,9 +133,9 @@ public class SecurityConfiguration {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
 
         return jwtAuthenticationConverter;
-
-
     }
+
+
 
 }
 
@@ -139,6 +143,9 @@ public class SecurityConfiguration {
 * admin user (has authority to view all authors)
 * userName:ben-->Admin user
 * password:123456
+* normal user (has authority to view own data)
+* userName:john-->Normal user
+* password:654321
 * Login with these credentials as basic login to generate token and use to log in to
 * other end points or use basic the basic login credentials for all
 *http://localhost:8081/h2-console
