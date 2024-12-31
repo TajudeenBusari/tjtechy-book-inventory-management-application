@@ -124,6 +124,13 @@ public class ExceptionHandlerAdvice {
                 ex.getStatusCode());
     }
 
+    @ExceptionHandler(PasswordChangeIllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Result handlePasswordChangeIllegalArgumentException(PasswordChangeIllegalArgumentException ex) {
+        return new Result(false, StatusCode.BAD_REQUEST, "Password change failed", ex.getMessage());
+    }
+
+
     /**
      * fall back handles any unhandled exception
      * @param ex

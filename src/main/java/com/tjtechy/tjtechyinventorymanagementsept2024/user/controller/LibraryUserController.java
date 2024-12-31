@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -85,5 +86,17 @@ public class LibraryUserController {
         this.libraryUserService.delete(userId);
         return new Result(true, StatusCode.SUCCESS, "Delete Success");
 
+    }
+
+    @PatchMapping("/{userId}/change-password")
+    public Result changePassword(@PathVariable Integer userId, @RequestBody Map<String, String> passwordMap){
+
+          String oldPassword = passwordMap.get("oldPassword");
+          String newPassword = passwordMap.get("newPassword");
+          String confirmNewPassword = passwordMap.get("confirmNewPassword");
+
+          this.libraryUserService.changePassword(userId, oldPassword, newPassword, confirmNewPassword);
+
+          return new Result(true, StatusCode.SUCCESS, "Password Change Success", null);
     }
 }

@@ -1,5 +1,6 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.security;
 
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.rediscache.RedisCacheClient;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.converter.LibraryUserToLibraryUserDtoConverter;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.MyUserPrincipal;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthService {
@@ -17,9 +19,12 @@ public class AuthService {
 
     private final LibraryUserToLibraryUserDtoConverter libraryUserToLibraryUserDtoConverter;
 
-    public AuthService(JwtProvider jwtProvider, LibraryUserToLibraryUserDtoConverter libraryUserToLibraryUserDtoConverter) {
+    private final RedisCacheClient redisCacheClient;
+
+    public AuthService(JwtProvider jwtProvider, LibraryUserToLibraryUserDtoConverter libraryUserToLibraryUserDtoConverter, RedisCacheClient redisCacheClient) {
         this.jwtProvider = jwtProvider;
         this.libraryUserToLibraryUserDtoConverter = libraryUserToLibraryUserDtoConverter;
+      this.redisCacheClient = redisCacheClient;
     }
 
     public Map<String, Object> createLoginInfo(Authentication authentication) {
@@ -40,10 +45,15 @@ public class AuthService {
         String token = this.jwtProvider.createToken(authentication);
         //String token = ""; just for testing
 
+        //save a copy of the token in redis before returning to the client. Key is "whitelist: {userId}", value is token
+        //if a user logs in multiple times, only the last token will be saved because, the key is unique.
+        this.redisCacheClient.set("whitelist:" + libraryUser.getUserId(), token, 2, TimeUnit.HOURS);
+
         Map<String, Object> loginResultMap = new HashMap<>();
         loginResultMap.put("userInfo", libraryUserDto);
         loginResultMap.put("token", token);
 
         return loginResultMap;
+
     }
 }

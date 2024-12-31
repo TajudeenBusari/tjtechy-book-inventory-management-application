@@ -2,6 +2,7 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.user.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.repository.LibraryUserRepository;
@@ -15,13 +16,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /***
  * Integration tests for Library User API endpoints using test containers
  * In this test class avoid creating user with same name for different test methods.
+ * Remember to start redis else all integration tests will fail
+ * A logic to run integration test without starting redis will be
+ * implemented in the future
  */
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -62,6 +69,12 @@ public class LibraryUserTestContainerIntegrationTest {
 
     private String aToken;
     private String nToken;
+
+//    @Container
+//
+//    static RedisContainer redisContainer = new RedisContainer(DockerImageName.parse("redis:6.2.6"));
+
+
 
     private final static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15.0")
             .withDatabaseName("inventory-management-sept2024")
@@ -468,6 +481,285 @@ public class LibraryUserTestContainerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.FORBIDDEN))
                 .andExpect(jsonPath("$.message").value("No permission"));
+    }
+
+    @Test
+    @DisplayName("Check Password change with valid input (PATCH)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testChangePasswordSuccess() throws Exception{
+        //create a user
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserName("jane");
+        libraryUser.setPassword("Abc123456");
+        libraryUser.setRoles("user");
+        libraryUser.setEnabled(true);
+
+        var json = objectMapper.writeValueAsString(libraryUser);
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.aToken))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var responseContent = postResult.getResponse().getContentAsString();
+        var jsonString = new JSONObject(responseContent);
+        var userId = jsonString.getJSONObject("data").getString("userId");
+
+        //jane login and extract token
+        var janeResultAction = this.mockMvc.perform(post(this.baseUrl + "/users/login")
+                .with(httpBasic("jane", "Abc123456")));
+        var janeResult = janeResultAction.andDo(print()).andReturn();
+        var janeContentString = janeResult.getResponse().getContentAsString();
+        var janeJsonString = new JSONObject(janeContentString);
+        var janeToken = "Bearer " + janeJsonString.getJSONObject("data").getString("token");
+
+        //change password
+        var changePassword = new JSONObject();
+        changePassword.put("oldPassword", "Abc123456");
+        changePassword.put("newPassword", "Abc1234567");
+        changePassword.put("confirmNewPassword", "Abc1234567");
+        var changePasswordJson = changePassword.toString();
+        /**
+         * It is also possible to use:
+         * Map<String, String> changePassword = new HashMap<>();
+         * changePassword.put("oldPassword", "Abc123456");
+         * changePassword.put("newPassword", "Abc1234567");
+         * changePassword.put("confirmNewPassword", "Abc1234567");
+         * var changePasswordJson = objectMapper.writeValueAsString(changePassword);
+         * */
+
+        this.mockMvc.perform(patch(this.baseUrl + "/users/" + userId + "/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(changePasswordJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, janeToken))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Password Change Success"));
+
+    }
+
+    @Test
+    @DisplayName("Check Password change with wrong old password (PATCH)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testChangePasswordWithWrongOldPassword() throws Exception{
+        //create a user
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserName("mary");
+        libraryUser.setPassword("Def123456");
+        libraryUser.setRoles("user");
+        libraryUser.setEnabled(true);
+
+        var json = objectMapper.writeValueAsString(libraryUser);
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.aToken))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var responseContent = postResult.getResponse().getContentAsString();
+        var jsonString = new JSONObject(responseContent);
+        var userId = jsonString.getJSONObject("data").getString("userId");
+
+        //mary login and extract token
+        var janeResultAction = this.mockMvc.perform(post(this.baseUrl + "/users/login")
+                .with(httpBasic("mary", "Def123456")));
+        var janeResult = janeResultAction.andDo(print()).andReturn();
+        var janeContentString = janeResult.getResponse().getContentAsString();
+        var janeJsonString = new JSONObject(janeContentString);
+        var maryToken = "Bearer " + janeJsonString.getJSONObject("data").getString("token");
+
+        //change password
+        var changePassword = new JSONObject();
+        changePassword.put("oldPassword", "Abc1234567"); //wrong old password, it is Def123456
+        changePassword.put("newPassword", "Def1234567");
+        changePassword.put("confirmNewPassword", "Def1234567");
+        var changePasswordJson = changePassword.toString();
+
+        this.mockMvc.perform(patch(this.baseUrl + "/users/" + userId + "/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(changePasswordJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, maryToken))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.UNAUTHORIZED))
+                .andExpect(jsonPath("$.message").value("username or password is incorrect."))
+                .andExpect(jsonPath("$.data").value("Old password is incorrect."));
+    }
+
+    @Test
+    @DisplayName("Check Password change with new password and confirm new password not matching (PATCH)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testPasswordChangeWithNewPasswordAndConfirmNewPasswordNotMatching() throws Exception{
+        //create a user
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserName("greg");
+        libraryUser.setPassword("Abc123456");
+        libraryUser.setRoles("user");
+        libraryUser.setEnabled(true);
+
+        var json = objectMapper.writeValueAsString(libraryUser);
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.aToken))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var responseContent = postResult.getResponse().getContentAsString();
+        var jsonString = new JSONObject(responseContent);
+        var userId = jsonString.getJSONObject("data").getString("userId");
+
+        //greg login and extract token
+        var gregResultAction = this.mockMvc.perform(post(this.baseUrl + "/users/login")
+                .with(httpBasic("greg", "Abc123456")));
+        var gregResult = gregResultAction.andDo(print()).andReturn();
+        var gregContentString = gregResult.getResponse().getContentAsString();
+        var gregJsonString = new JSONObject(gregContentString);
+        var gregToken = "Bearer " + gregJsonString.getJSONObject("data").getString("token");
+
+        //change password
+        var changePassword = new JSONObject();
+        changePassword.put("oldPassword", "Abc123456");
+        changePassword.put("newPassword", "Abc1234567");
+        changePassword.put("confirmNewPassword", "Abc12345678"); //confirm new password not matching
+        var changePasswordJson = changePassword.toString();
+
+        this.mockMvc.perform(patch(this.baseUrl + "/users/" + userId + "/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(changePasswordJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, gregToken))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.BAD_REQUEST))
+                .andExpect(jsonPath("$.message").value("Password change failed"))
+                .andExpect(jsonPath("$.data").value("New password and confirm new password do not match."));
+    }
+
+    @Test
+    @DisplayName("Check Password change with new password not conforming to password policy (PATCH)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testPasswordChangeWithNewPasswordNotConformingToPasswordPolicy() throws Exception{
+        //create a user
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserName("james");
+        libraryUser.setPassword("Abc123456");
+        libraryUser.setRoles("user");
+        libraryUser.setEnabled(true);
+
+        var json = objectMapper.writeValueAsString(libraryUser);
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.aToken))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var responseContent = postResult.getResponse().getContentAsString();
+        var jsonString = new JSONObject(responseContent);
+        var userId = jsonString.getJSONObject("data").getString("userId");
+
+        //james login and extract token
+        var jamesResultAction = this.mockMvc.perform(post(this.baseUrl + "/users/login")
+                .with(httpBasic("james", "Abc123456")));
+        var jamesResult = jamesResultAction.andDo(print()).andReturn();
+        var jamesContentString = jamesResult.getResponse().getContentAsString();
+        var jamesJsonString = new JSONObject(jamesContentString);
+        var jamesToken = "Bearer " + jamesJsonString.getJSONObject("data").getString("token");
+
+        //change password
+        var changePassword = new JSONObject();
+        changePassword.put("oldPassword", "Abc123456");
+        changePassword.put("newPassword", "abc1234567"); //new password does not conform to password policy
+        changePassword.put("confirmNewPassword", "abc1234567");
+        var changePasswordJson = changePassword.toString();
+
+        this.mockMvc.perform(patch(this.baseUrl + "/users/" + userId + "/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(changePasswordJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, jamesToken))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.BAD_REQUEST))
+                .andExpect(jsonPath("$.message").value("Password change failed"))
+                .andExpect(jsonPath("$.data").value("New password must contain at least 8 characters, at least 1 digit, at least 1 lowercase letter, at least 1 uppercase letter."));
+    }
+
+    @Test
+    @DisplayName("Check Password change with new password same as old password (PATCH)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testPasswordChangeWithNewPasswordSameAsOldPassword() throws Exception{
+        //create a user
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserName("atika");
+        libraryUser.setPassword("Abc123456");
+        libraryUser.setRoles("user");
+        libraryUser.setEnabled(true);
+        var json = objectMapper.writeValueAsString(libraryUser);
+
+        var postResult = this.mockMvc.perform(post(this.baseUrl + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.aToken))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Add Success")).andReturn();
+        var responseContent = postResult.getResponse().getContentAsString();
+        var jsonString = new JSONObject(responseContent);
+        var userId = jsonString.getJSONObject("data").getString("userId");
+
+        //atika login and extract token
+        var atikaResultAction = this.mockMvc.perform(post(this.baseUrl + "/users/login")
+                .with(httpBasic("atika", "Abc123456")));
+        var atikaResult = atikaResultAction.andDo(print()).andReturn();
+        var atikaContentString = atikaResult.getResponse().getContentAsString();
+        var atikaJsonString = new JSONObject(atikaContentString);
+        var atikaToken = "Bearer " + atikaJsonString.getJSONObject("data").getString("token");
+
+        //change password
+        var changePassword = new JSONObject();
+        changePassword.put("oldPassword", "Abc123456");
+        changePassword.put("newPassword", "Abc123456"); //new password is same as old password
+        changePassword.put("confirmNewPassword", "Abc123456");
+        var changePasswordJson = changePassword.toString();
+
+        this.mockMvc.perform(patch(this.baseUrl + "/users/" + userId + "/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(changePasswordJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, atikaToken))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.BAD_REQUEST))
+                .andExpect(jsonPath("$.message").value("Password change failed"))
+                .andExpect(jsonPath("$.data").value("New password must be different from the old password."));
+    }
+
+    @Test
+    @DisplayName("Check Password change with user not found (PATCH)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testPasswordChangeWithUserNotFound() throws Exception{
+        //create a user
+        var NonExistingUserId = 1000;
+
+        //Change password
+        var changePassword = new JSONObject();
+        changePassword.put("oldPassword", "Abc123456");
+        changePassword.put("newPassword", "Abc1234567");
+        changePassword.put("confirmNewPassword", "Abc1234567");
+        var changePasswordJson = changePassword.toString();
+
+        //since user does not exist, we can use Admin to change password
+        this.mockMvc.perform(patch(this.baseUrl + "/users/" + NonExistingUserId + "/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(changePasswordJson)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.aToken))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find library user with Id " + NonExistingUserId))
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 
 }

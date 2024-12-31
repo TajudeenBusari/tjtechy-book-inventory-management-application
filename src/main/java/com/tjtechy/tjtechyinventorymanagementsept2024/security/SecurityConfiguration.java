@@ -79,6 +79,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_Admin")
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").access(this.userRequestAuthorizationManager)
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_Admin")
+                        .requestMatchers(HttpMethod.PATCH, baseUrl + "/users/**").access(this.userRequestAuthorizationManager)//Admin can change everyone's password and user can change their own password
                         //security rules for actuator endpoints
                         .requestMatchers(EndpointRequest.to("health", "info", "prometheus")).permitAll()
                         .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info", "prometheus")).hasAuthority("ROLE_Admin")
@@ -145,7 +146,7 @@ public class SecurityConfiguration {
 * password:123456
 * normal user (has authority to view own data)
 * userName:john-->Normal user
-* password:654321
+* password:654321, update password to Abc12345
 * Login with these credentials as basic login to generate token and use to log in to
 * other end points or use basic the basic login credentials for all
 *http://localhost:8081/h2-console
