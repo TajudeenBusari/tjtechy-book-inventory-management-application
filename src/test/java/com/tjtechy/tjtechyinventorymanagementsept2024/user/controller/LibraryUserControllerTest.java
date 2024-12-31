@@ -1,7 +1,9 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.rediscache.RedisCacheClient;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.LibraryUserNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.security.JwtInterceptor;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.dto.LibraryUserDto;
@@ -31,8 +33,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+//@WebMvcTest(LibraryUserController.class)
 @WebMvcTest(LibraryUserController.class)
-//@SpringBootTest
+//@SpringBootTest(classes = {JwtInterceptor.class, RedisCacheClient.class})
 @AutoConfigureMockMvc(addFilters = false)//turns off spring security
 /**
  * this will override the active profile in application.yml file.
@@ -44,6 +47,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LibraryUserControllerTest {
     @Autowired
     MockMvc mockMvc;
+
+    /**these RedisCacheClient and JwtInterceptor  are added
+     * because redisCache client was introduced in the project.
+     * Without them controller unit tests are failing.
+     *
+     *
+     * */
+    @MockitoBean
+    RedisCacheClient redisCacheClient;
+
+    @Autowired
+    JwtInterceptor jwtInterceptor;
 
     @MockitoBean
     LibraryUserService libraryUserService;

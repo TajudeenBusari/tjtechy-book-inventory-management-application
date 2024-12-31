@@ -1,5 +1,7 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.user.service;
 
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.rediscache.RedisCacheClient;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.PasswordChangeIllegalArgumentException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.LibraryUserNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.MyUserPrincipal;
@@ -12,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,6 +45,9 @@ class LibraryUserServiceTest {
 
     @Mock
     PasswordEncoder passwordEncoder;
+
+    @Mock
+    RedisCacheClient redisCacheClient;
 
     @InjectMocks
     LibraryUserService libraryUserService;
@@ -300,5 +306,142 @@ class LibraryUserServiceTest {
 
         //Then
         verify(libraryUserRepository, times(1)).findById(libraryUser.getUserId());
+    }
+
+    @Test
+    void testPasswordChangeSuccess(){
+        //Given
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserId(2);
+        libraryUser.setPassword("oldEncryptedPassword");
+
+        //mocks
+        given(libraryUserRepository.findById(libraryUser.getUserId())).willReturn(Optional.of(libraryUser));
+        given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
+        given(passwordEncoder.encode(anyString())).willReturn("newEncryptedPassword");
+        given(libraryUserRepository.save(libraryUser)).willReturn(libraryUser);
+        doNothing().when(this.redisCacheClient).delete(anyString());
+
+        //When
+        libraryUserService.changePassword(libraryUser.getUserId(), "unencryptedOldPassword", "Abc12345", "Abc12345");
+
+
+
+        //Then
+        assertThat(libraryUser.getPassword()).isEqualTo("newEncryptedPassword");
+        verify(libraryUserRepository, times(1)).save(libraryUser);
+
+    }
+
+    @Test
+    void testChangePasswordOlPasswordIsIncorrect(){
+
+        //Given
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserId(2);
+        libraryUser.setPassword("oldEncryptedPassword");
+
+        //mocks
+        given(libraryUserRepository.findById(libraryUser.getUserId())).willReturn(Optional.of(libraryUser));
+        given(passwordEncoder.matches(anyString(), anyString())).willReturn(false); //old password matches the password in the DB(mocks, not actual DB)
+
+        Exception badCredentialsException = assertThrows(BadCredentialsException.class, () -> {
+            //When
+            libraryUserService.changePassword(libraryUser.getUserId(), "unencryptedWrongOldPassword", "Abc12345", "Abc12345");
+        });
+
+
+        //Then
+        assertThat(badCredentialsException).isInstanceOf(BadCredentialsException.class).hasMessage("Old password is incorrect.");
+
+    }
+
+    @Test
+    void testChangePasswordUserNotFound(){
+        //Given
+
+        //mocks
+        given(libraryUserRepository.findById(2)).willReturn(Optional.empty());
+
+
+        Exception notFoundException = assertThrows(LibraryUserNotFoundException.class, () -> {
+            //When
+            libraryUserService.changePassword(2, "unencryptedWrongOldPassword", "Abc12345", "Abc12345");
+        });
+
+
+        //Then
+        assertThat(notFoundException).isInstanceOf(LibraryUserNotFoundException.class).hasMessage("Could not find library user with Id 2");
+
+    }
+
+    @Test
+    void testChangePasswordNewPasswordDoesNotMatchConfirmNewPassword(){
+
+        //Given
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserId(2);
+        libraryUser.setPassword("oldEncryptedPassword");
+
+        //mocks
+        given(libraryUserRepository.findById(libraryUser.getUserId())).willReturn(Optional.of(libraryUser));
+        given(passwordEncoder.matches(anyString(), anyString())).willReturn(true); //old password matches the password in the DB(mocks, not actual DB)
+
+        Exception badCredentialsException = assertThrows(PasswordChangeIllegalArgumentException.class, () -> {
+            //When
+            libraryUserService.changePassword(libraryUser.getUserId(), "unencryptedOldPassword", "Abc12345", "Abc123456");
+        });
+
+
+        //Then
+        assertThat(badCredentialsException).isInstanceOf(PasswordChangeIllegalArgumentException.class).hasMessage("New password and confirm new password do not match.");
+
+    }
+
+    @Test
+    void testChangePasswordNewPasswordIsSameAsOldPassword(){
+
+          //Given
+          var libraryUser = new LibraryUser();
+          libraryUser.setUserId(2);
+          libraryUser.setPassword("oldEncryptedPassword");
+
+          //mocks
+          given(libraryUserRepository.findById(libraryUser.getUserId())).willReturn(Optional.of(libraryUser));
+          given(passwordEncoder.matches(anyString(), anyString())).willReturn(true); //old password matches the password in the DB(mocks, not actual DB)
+
+
+
+          Exception badCredentialsException = assertThrows(PasswordChangeIllegalArgumentException.class, () -> {
+              //When
+              libraryUserService.changePassword(libraryUser.getUserId(), "unencryptedOldPassword", "unencryptedOldPassword", "unencryptedOldPassword");
+          });
+
+          //Then
+          assertThat(badCredentialsException).isInstanceOf(PasswordChangeIllegalArgumentException.class).hasMessage("New password must be different from the old password.");
+
+    }
+
+    @Test
+    void testChangePasswordNewPasswordDoesNotConformToThePasswordPolicy(){
+
+        //Given
+        var libraryUser = new LibraryUser();
+        libraryUser.setUserId(2);
+        libraryUser.setPassword("oldEncryptedPassword");
+
+        //mocks
+        given(libraryUserRepository.findById(libraryUser.getUserId())).willReturn(Optional.of(libraryUser));
+        given(passwordEncoder.matches(anyString(), anyString())).willReturn(true); //old password matches the password in the DB(mocks, not actual DB)
+
+        Exception badCredentialsException = assertThrows(PasswordChangeIllegalArgumentException.class, () -> {
+            //When
+            libraryUserService.changePassword(libraryUser.getUserId(), "unencryptedOldPassword", "abc12345", "abc12345");
+        });
+
+
+        //Then
+        assertThat(badCredentialsException).isInstanceOf(PasswordChangeIllegalArgumentException.class).hasMessage("New password must contain at least 8 characters, at least 1 digit, at least 1 lowercase letter, at least 1 uppercase letter.");
+
     }
 }

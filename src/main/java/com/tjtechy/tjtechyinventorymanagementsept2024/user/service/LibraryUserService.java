@@ -1,11 +1,14 @@
 package com.tjtechy.tjtechyinventorymanagementsept2024.user.service;
 
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.rediscache.RedisCacheClient;
+import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.PasswordChangeIllegalArgumentException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.LibraryUserNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.LibraryUser;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.model.MyUserPrincipal;
 import com.tjtechy.tjtechyinventorymanagementsept2024.user.repository.LibraryUserRepository;
 import jakarta.transaction.Transactional;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,10 +27,13 @@ LibraryUserService implements UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public LibraryUserService(LibraryUserRepository libraryUserRepository, PasswordEncoder passwordEncoder) {
+    private final RedisCacheClient  redisCacheClient;
+
+    public LibraryUserService(LibraryUserRepository libraryUserRepository, PasswordEncoder passwordEncoder, RedisCacheClient redisCacheClient) {
 
         this.libraryUserRepository = libraryUserRepository;
         this.passwordEncoder = passwordEncoder;
+      this.redisCacheClient = redisCacheClient;
     }
 
     public LibraryUser save(LibraryUser newLibraryUser) {
@@ -59,7 +65,8 @@ LibraryUserService implements UserDetailsService {
         //update we are not updating password here
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         //if user is not an admin, then the user can only update her username.
-        if (authentication.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_Admin"))) {
+        if (authentication.getAuthorities().stream().noneMatch(a ->
+                a.getAuthority().equals("ROLE_Admin"))) {
             foundlibraryUser.setUserName(updateLibraryUser.getUserName());
 
         } else {
@@ -67,6 +74,10 @@ LibraryUserService implements UserDetailsService {
         foundlibraryUser.setUserName(updateLibraryUser.getUserName());
         foundlibraryUser.setRoles(updateLibraryUser.getRoles());
         foundlibraryUser.setEnabled(updateLibraryUser.isEnabled());
+
+        //if an admin updates any data, like role, enable or username, revoke the JWT from Redis
+            this.redisCacheClient.delete("whitelist:" + userId);
+
         }
 
         return this.libraryUserRepository.save(foundlibraryUser);
@@ -98,6 +109,43 @@ LibraryUserService implements UserDetailsService {
                 this.libraryUserRepository.findByUserName(username)
                 .map(libraryUser -> new MyUserPrincipal(libraryUser))
                 .orElseThrow(() -> new UsernameNotFoundException("username " + username + " is found."));
+
+    }
+
+    public void changePassword(Integer userId, String oldPassword, String newPassword, String confirmNewPassword) {
+
+        var libraryUser = this.libraryUserRepository.findById(userId)
+                .orElseThrow(() -> new LibraryUserNotFoundException(userId));
+
+        //check if old password is not correct, throw an exception
+        if (!this.passwordEncoder.matches(oldPassword, libraryUser.getPassword())) {
+            throw new BadCredentialsException("Old password is incorrect.");
+        }
+
+        //check if new password and confirm new password do not match, throw an exception
+        if (!newPassword.equals(confirmNewPassword)) {
+            throw new PasswordChangeIllegalArgumentException("New password and confirm new password do not match.");
+        }
+
+        //check if new password is the same as the old password, throw an exception
+        if (newPassword.equals(oldPassword)) {
+            throw new PasswordChangeIllegalArgumentException("New password must be different from the old password.");
+        }
+
+        //The new password must contain at least 8 characters, at least 1 digit, at least 1 lowercase letter, at least 1 uppercase letter.
+        String passwordPolicy = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$";
+        if (!newPassword.matches(passwordPolicy)) {
+            throw new PasswordChangeIllegalArgumentException("New password must contain at least 8 characters, at least 1 digit, at least 1 lowercase letter, at least 1 uppercase letter.");
+        }
+
+        //Encode and save new password
+        libraryUser.setPassword(this.passwordEncoder.encode(newPassword));
+
+        //Revoke this user's current JWT by deleting from RedisCache
+        this.redisCacheClient.delete("whitelist:" + userId);
+
+        this.libraryUserRepository.save(libraryUser);
+
 
     }
 }

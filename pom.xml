@@ -139,6 +139,28 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
+
+        <!--dependencies needed to run redis in the docker container and junit-jupiter that
+        has been added for my integration test earlier-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-testcontainers</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash;specific to redis&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.redis</groupId>-->
+<!--            <artifactId>testcontainers-redis</artifactId>-->
+<!--            <version>2.2.2</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
         <!--for version change. Remove this dependency as soon as you fix any upgrade issue
         DON'T KEEP IN PRODUCTION-->
 <!--        <dependency>-->

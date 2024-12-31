@@ -2,10 +2,12 @@ package com.tjtechy.tjtechyinventorymanagementsept2024.book.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.controller.AuthorController;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.rediscache.RedisCacheClient;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.dto.BookDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.service.BookService;
+import com.tjtechy.tjtechyinventorymanagementsept2024.security.JwtInterceptor;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -62,6 +64,18 @@ class BookControllerTest {
 
     @MockitoBean //for controller test, we use MockBean
     BookService bookService;
+
+    /**these RedisCacheClient and JwtInterceptor  are added
+     * because redisCache client was introduced in the project.
+     * Without them controller unit tests are failing.
+     *
+     *
+     * */
+    @MockitoBean
+    RedisCacheClient redisCacheClient;
+
+    @Autowired
+    JwtInterceptor jwtInterceptor;
 
     @Autowired
     ObjectMapper objectMapper; //from fasterxml.jackson.databind

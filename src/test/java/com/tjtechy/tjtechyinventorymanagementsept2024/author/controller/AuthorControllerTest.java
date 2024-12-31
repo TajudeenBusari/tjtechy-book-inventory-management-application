@@ -5,9 +5,11 @@ import com.tjtechy.tjtechyinventorymanagementsept2024.TjtechyInventoryManagement
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.Author;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.model.dto.AuthorDto;
 import com.tjtechy.tjtechyinventorymanagementsept2024.author.service.AuthorService;
+import com.tjtechy.tjtechyinventorymanagementsept2024.client.rediscache.RedisCacheClient;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.AuthorNotFoundException;
 import com.tjtechy.tjtechyinventorymanagementsept2024.book.model.Book;
 import com.tjtechy.tjtechyinventorymanagementsept2024.exceptions.modelNotFound.BookNotFoundException;
+import com.tjtechy.tjtechyinventorymanagementsept2024.security.JwtInterceptor;
 import com.tjtechy.tjtechyinventorymanagementsept2024.system.StatusCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,8 +51,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles(value = "h2-database")
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AuthorControllerTest {
+
     @Autowired
     MockMvc mockMvc;
+
+    /**these RedisCacheClient and JwtInterceptor  are added
+     * because redisCache client was introduced in the project.
+     * Without them controller unit tests are failing.
+     *
+     *
+     * */
+    @MockitoBean
+    RedisCacheClient redisCacheClient;
+
+    @Autowired
+    JwtInterceptor jwtInterceptor;
 
     @MockitoBean
     AuthorService authorService;
